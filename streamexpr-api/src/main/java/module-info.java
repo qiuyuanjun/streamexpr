@@ -1,7 +1,8 @@
-
 /**
  * @author qiuyj
  * @since 2023-06-29
  */
-module $MODULE_NAME$ {
+module streamexpr.api {
+
+    exports com.qiuyj.streamexpr.api;
 }

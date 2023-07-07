@@ -7,5 +7,5 @@ package com.qiuyj.streamexpr.api;
  */
 public interface Lexer {
 
-    void nextToken();
+    Token nextToken();
 }

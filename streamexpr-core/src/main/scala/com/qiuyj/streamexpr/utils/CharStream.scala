@@ -1,4 +1,4 @@
-package com.qiuyj.cdexpr.scalaCode
+package com.qiuyj.streamexpr.utils
 
 import java.io.InputStream
 
@@ -23,8 +23,6 @@ trait CharStream extends InputStream {
    */
   def getChar(n: Int): Char
 
-  def getCurrentChar: Char = getChar(0)
-
   def getPrevChar: Char = getChar(-1)
 
   def getNextChar: Char = getChar(1)
@@ -47,7 +45,9 @@ trait CharStream extends InputStream {
 
   def hasPrev: Boolean
 
-  def getString(position: Int): String
+  def getString(start: Int): String
+
+  def getString(start: Int, end: Int): String
 }
 
 object CharStream {

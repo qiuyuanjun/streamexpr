@@ -1,6 +1,6 @@
 package com.qiuyj.streamexpr.parser
 
-import com.qiuyj.streamexpr.api.Lexer
+import com.qiuyj.streamexpr.api.{Lexer, Token}
 
 /**
  * @author qiuyj
@@ -8,7 +8,9 @@ import com.qiuyj.streamexpr.api.Lexer
  */
 class StreamExpressionScanner(private[this] val sourceString: String) extends Lexer {
 
-  override def nextToken(): Unit = {
+  private[this] val tokenizer = new StreamExpressionTokenizer(sourceString)
 
+  override def nextToken: Token = {
+    tokenizer.readToken
   }
 }

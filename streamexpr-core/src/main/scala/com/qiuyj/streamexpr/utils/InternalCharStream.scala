@@ -1,13 +1,13 @@
-package com.qiuyj.cdexpr.scalaCode
+package com.qiuyj.streamexpr.utils
 
 /**
  * @author qiuyj
  * @since 2023-06-28
  */
-private[scalaCode] class InternalCharStream(private[this] val charArray: Array[Char]) extends CharStream {
+private[utils] class InternalCharStream(private[this] val charArray: Array[Char]) extends CharStream {
 
-  private var pos: Int = 0
-  private val maxPos: Int = charArray.length - 1
+  private[this] var pos: Int = 0
+  private[this] val maxPos: Int = charArray.length - 1
 
   def this(source: String) = this(source.toCharArray)
 
@@ -37,9 +37,10 @@ private[scalaCode] class InternalCharStream(private[this] val charArray: Array[C
 
   override def hasPrev: Boolean = pos - 1 >= 0
 
-  override def getString(position: Int): String =
+  override def getString(position: Int): String = {
+    assert(position <= maxPos, s"Array index out of range with begin index: $position")
     if (position == pos - 1) {
-      String.valueOf(getCurrentChar)
+      String.valueOf(getChar(0))
     }
     else if (position < pos) {
       new String(charArray, position, pos - position)
@@ -47,5 +48,10 @@ private[scalaCode] class InternalCharStream(private[this] val charArray: Array[C
     else {
       new String(charArray, pos, position - pos)
     }
+  }
 
+  override def getString(start: Int, end: Int): String = {
+    assert(start <= maxPos && end <= maxPos, s"Array index out of range with begin index: $start and end index: $end")
+    new String(charArray, start, Math.abs(end - start))
+  }
 }
