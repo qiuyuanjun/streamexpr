@@ -50,11 +50,8 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
       character = lookaheadCharacter
       lookaheadCharacter = 0
     }
-    else if (source.hasRemaining) {
-      character = source.nextChar
-    }
     else {
-      character = 0
+      character = if (source.hasRemaining) source.nextChar else 0
     }
     character
   }
@@ -68,7 +65,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
     next
   }
 
-  private def reset(): Unit = {
+  private def resetAsLookahead(): Unit = {
     lookaheadCharacter = character
     character = 0
   }
@@ -80,7 +77,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
    */
   private def lookahead: Char = {
     if (lookaheadCharacter != 0) {
-      throw new IllegalStateException("")
+      throw new IllegalStateException("After calling the 'lookahead' method, it is necessary to call the 'next' method in a timely manner")
     }
     if (source.hasRemaining) {
       lookaheadCharacter = source.nextChar
@@ -101,12 +98,12 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
            '$' | '_' =>
         next
         readIdentifier(startPos)
-        reset()
+        resetAsLookahead()
       case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
         val firstIsZero = is('0')
         putThenNext
         numericInfo = readNumeric(startPos, firstIsZero)
-        reset()
+        resetAsLookahead()
       case '\'' =>
         next
         readStringLiteral(startPos)
