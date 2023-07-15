@@ -40,4 +40,15 @@ class StreamExpressionScanner(private[this] val sourceString: String) extends Le
     }
     currentToken
   }
+
+  override def getPrevToken: Token = prevToken
+
+  override def lookahead(): Token = {
+    if (Objects.nonNull(lookaheadToken)) {
+      throw new IllegalStateException("After calling the 'lookahead' method, it is necessary to call the 'next' method in a timely manner")
+    }
+    lookaheadToken = tokenizer.readToken
+    lookaheadToken
+  }
+
 }

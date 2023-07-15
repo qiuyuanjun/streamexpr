@@ -65,7 +65,11 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
     next
   }
 
-  private def resetAsLookahead(): Unit = {
+  /**
+   * 回退一个字符，有些方法，比如读取标识符或者数字，需要多读一个字符来判断结束，因此在读取结束之后，需要将多读的字符回退回去
+   * 这里实现回退的方法就是把当前读取的character存储在lookaheadCharacter里面，当下一次调用next时候，会从lookaheadCharacter里面获取这次回退的字符值
+   */
+  private def pushback(): Unit = {
     lookaheadCharacter = character
     character = 0
   }
@@ -98,12 +102,12 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
            '$' | '_' =>
         next
         readIdentifier(startPos)
-        resetAsLookahead()
+        pushback()
       case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
         val firstIsZero = is('0')
         putThenNext
         numericInfo = readNumeric(startPos, firstIsZero)
-        resetAsLookahead()
+        pushback()
       case '\'' =>
         next
         readStringLiteral(startPos)
@@ -360,7 +364,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
     val identifier = source.getString(startPos, source.currentPos - 1)
     // 判断是否是关键字
     val tokenKinds = TokenKinds.getInstance
-    kind = tokenKinds.getAsKeyword(identifier)
+    kind = tokenKinds.getKeyword(identifier)
     if (Objects.isNull(kind)) {
       stringContent ++= identifier
       kind = tokenKinds.getTokenKindByTag(TokenKind.TAG_IDENTIFIER)

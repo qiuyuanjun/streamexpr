@@ -66,7 +66,7 @@ public class TokenKinds {
         return Objects.requireNonNull(tokenKindTags.get(tag), "Can not find TokenKind with tag: " + tag);
     }
 
-    public TokenKind getAsKeyword(String name) {
+    public TokenKind getKeyword(String name) {
         return keywords.get(name);
     }
 }
