@@ -7,5 +7,9 @@ package com.qiuyj.streamexpr.api;
  */
 public interface Parser<T extends Expression> {
 
+    /**
+     * 根据词法解析器，构建对应的抽象语法树，然后封装成对应的表达式对象
+     * @return {@link Expression}子类（对应的表达式解析对象，内部包含抽象语法树节点）
+     */
     T parseExpression();
 }

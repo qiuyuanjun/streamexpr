@@ -44,7 +44,8 @@
                 <version>${scala.maven.plugin.version}</version>
                 <configuration>
                     <sendJavaToScalac>false</sendJavaToScalac>
-                    <compileOrder>ScalaThenJava</compileOrder>
+                    <!-- java和scala混编工程，先用javac编译java代码，然后再用scalac编译scala代码 -->
+                    <compileOrder>JavaThenScala</compileOrder>
                 </configuration>
                 <executions>
                     <execution>

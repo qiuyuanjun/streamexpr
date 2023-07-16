@@ -216,7 +216,8 @@ private[parser] class StreamExpressionTokenizer(private[this] val sourceString: 
     }
     while (loop)
     val spelExpr = source.getString(startPos)
-    if (spelExpr.length == 3) {
+    val length = spelExpr.length
+    if (length == 3 || spelExpr.substring(2, length - 1).isBlank) {
       // spel表达式是空的(#{})，那么抛出异常
       throw new IllegalStateException(s"The SPEL expression is empty at start position: $startPos")
     }
