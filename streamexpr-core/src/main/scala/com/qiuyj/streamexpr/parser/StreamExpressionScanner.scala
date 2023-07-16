@@ -1,6 +1,6 @@
 package com.qiuyj.streamexpr.parser
 
-import com.qiuyj.streamexpr.api.{Lexer, Token}
+import com.qiuyj.streamexpr.api.{Lexer, Token, TokenKind}
 import com.qiuyj.streamexpr.utils.CharStream
 
 import java.util.Objects
@@ -29,15 +29,15 @@ class StreamExpressionScanner(private[this] val sourceString: String) extends Le
   private[this] var currentToken: Token = _
 
   override def nextToken: Token = {
-    if (Objects.nonNull(currentToken)) {
+    if (Objects.isNull(currentToken) || currentToken.getKind.getTag != TokenKind.TAG_EOF) {
       prevToken = currentToken
-    }
-    if (Objects.nonNull(lookaheadToken)) {
-      currentToken = lookaheadToken
-      lookaheadToken = null
-    }
-    else {
-      currentToken = tokenizer.readToken
+      if (Objects.nonNull(lookaheadToken)) {
+        currentToken = lookaheadToken
+        lookaheadToken = null
+      }
+      else {
+        currentToken = tokenizer.readToken
+      }
     }
     currentToken
   }
