@@ -1,6 +1,7 @@
 package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.api.{Lexer, Token}
+import com.qiuyj.streamexpr.utils.CharStream
 
 import java.util.Objects
 
@@ -10,7 +11,7 @@ import java.util.Objects
  */
 class StreamExpressionScanner(private[this] val sourceString: String) extends Lexer {
 
-  private[this] val tokenizer = new StreamExpressionTokenizer(sourceString)
+  private[this] val tokenizer = new StreamExpressionTokenizer(CharStream.wrap(sourceString))
 
   /**
    * 用于存储上一个token

@@ -25,7 +25,7 @@ private[utils] class InternalCharStream(private[this] val charArray: Array[Char]
 
   override def currentPos: Int = pos
 
-  override def fallback(n: Int): Unit = {
+  override def pushback(n: Int): Unit = {
     pos = Ordering.Int.max(pos - n, 0)
   }
 

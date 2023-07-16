@@ -9,9 +9,7 @@ import java.util.Objects
  * @author qiuyj
  * @since 2023-06-29
  */
-private[parser] class StreamExpressionTokenizer(private[this] val sourceString: String) {
-
-  private[this] val source = CharStream.wrap(sourceString)
+private[parser] class StreamExpressionTokenizer(private[this] val source: CharStream) {
 
   /**
    * 代表当前字符，readToken主要是对该字符做各种判断

@@ -29,9 +29,17 @@ trait CharStream extends InputStream {
 
   def currentPos: Int
 
-  def fallback(): Unit = fallback(1)
+  /**
+   * 回退一个字符，将指针往前移一位
+   */
+  def pushback(): Unit = pushback(1)
 
-  def fallback(n: Int): Unit
+  /**
+   * 回退给定位数的字符数，将指针往前移给定的位数
+   * @note 该方法会控制边界，如果指针最终回退的位置小于0，那么默认是回退到0
+   * @param n 要回退的字符数
+   */
+  def pushback(n: Int): Unit
 
   /**
    * 返回剩余未读取的字符数量
