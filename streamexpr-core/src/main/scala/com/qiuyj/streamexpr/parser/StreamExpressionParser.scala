@@ -1,7 +1,7 @@
 package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.StreamExpression
-import com.qiuyj.streamexpr.api.{Lexer, Parser}
+import com.qiuyj.streamexpr.api.{Lexer, Parser, Token, TokenKind}
 import com.qiuyj.streamexpr.utils.ParseUtils
 
 /**
@@ -11,7 +11,11 @@ import com.qiuyj.streamexpr.utils.ParseUtils
 class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[StreamExpression] {
 
   override def parseExpression: StreamExpression = {
-    lexer.nextToken
+    var token: Token = null
+    do {
+      token = lexer.nextToken
+    }
+    while (token.getKind.getTag != TokenKind.TAG_EOF)
     null
   }
 }
