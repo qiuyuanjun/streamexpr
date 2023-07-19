@@ -67,12 +67,21 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
    * 回退一个字符，有些方法，比如读取标识符或者数字，需要多读一个字符来判断结束，因此在读取结束之后，需要将多读的字符回退回去
    */
   private def pushback(): Unit = {
-    character = prevCharacter
+//    character = prevCharacter
     // 由于需要获取prevCharacter的值，因此这里需要先回退2个字符
-    // 等拿到了prevCharacter的值之后，再调用nextChar消费一个字符
+    // 等拿到了prevCharacter的值之后，再调用nextChar获取character的值
     source.pushback(2)
+    // 假设有ab.c这个字符，读取完ab标识符之后，pos位置如下所示：
+    // ab.c
+    //    ^
+    // 执行完pushback(2)函数之后，pos位置如下所示：
+    // ab.c
+    //  ^
     prevCharacter = if (source.hasPrev) source.getPrevChar else 0
-    source.nextChar
+    character = source.nextChar
+    // 执行完nextChar方法之后（返回字符'b'），pos位置如下所示：
+    // ab.c
+    //   ^
   }
 
   /**
