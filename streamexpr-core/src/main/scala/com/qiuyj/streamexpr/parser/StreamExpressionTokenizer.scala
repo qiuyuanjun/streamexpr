@@ -69,7 +69,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
   private def pushback(): Unit = {
     character = prevCharacter
     // 由于需要获取prevCharacter的值，因此这里需要先回退2个字符
-    // 等拿到了prevCharacter的值之后，在调用nextChar消费一个字符
+    // 等拿到了prevCharacter的值之后，再调用nextChar消费一个字符
     source.pushback(2)
     prevCharacter = if (source.hasPrev) source.getPrevChar else 0
     source.nextChar
