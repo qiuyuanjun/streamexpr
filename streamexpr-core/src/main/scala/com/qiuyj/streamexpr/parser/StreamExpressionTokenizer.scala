@@ -101,7 +101,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
 
   def readToken: Token = {
     stringContent.setLength(0)
-    val startPos = skipWhitespace
+    val startPos = skipWhitespaceUntil
     var numericInfo: NumericInfo = null
     character match {
       case 0 => kind = TokenKinds.getInstance.getTokenKindByTag(TokenKind.TAG_EOF)
@@ -385,10 +385,9 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
   /**
    * 跳过空白字符，并返回第一个非空字符的下标
    */
-  private def skipWhitespace: Int = {
-    var pos = source.currentPos
-    while (Character.isWhitespace(next)) pos += 1
-    pos
+  private def skipWhitespaceUntil: Int = {
+    while (Character.isWhitespace(next)) {}
+    source.currentPos - 1
   }
 
   /**
