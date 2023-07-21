@@ -82,6 +82,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     // 执行完nextChar方法之后（返回字符'b'），pos位置如下所示：
     // ab.c
     //   ^
+    lookaheadCharacter = 0 // 如果回退了，那么需要清空预读的字符值
   }
 
   /**
@@ -101,7 +102,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
 
   def readToken: Token = {
     stringContent.setLength(0)
-    val startPos = skipWhitespaceUntil
+    val startPos = skipWhitespaceThenNext
     var numericInfo: NumericInfo = null
     character match {
       case 0 => kind = TokenKinds.getInstance.getTokenKindByTag(TokenKind.TAG_EOF)
@@ -383,9 +384,9 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
   }
 
   /**
-   * 跳过空白字符，并返回第一个非空字符的下标
+   * 跳过空白字符，并读取第一个非空白字符，并返回对应的位置
    */
-  private def skipWhitespaceUntil: Int = {
+  private def skipWhitespaceThenNext: Int = {
     while (Character.isWhitespace(next)) {}
     source.currentPos - 1
   }
