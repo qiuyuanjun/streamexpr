@@ -43,22 +43,20 @@
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>${scala.maven.plugin.version}</version>
                 <configuration>
+                    <!-- scala编译器只编译scala代码，禁止编译java代码 -->
                     <sendJavaToScalac>false</sendJavaToScalac>
-                    <!-- java和scala混编工程，先用javac编译java代码，然后再用scalac编译scala代码 -->
-                    <compileOrder>JavaThenScala</compileOrder>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
+                        <id>compile-scala</id>
+                        <phase>compile</phase>
                         <goals>
-                            <goal>add-source</goal>
                             <goal>compile</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
+                        <id>test-compile-scala</id>
+                        <phase>test-compile</phase>
                         <goals>
                             <goal>testCompile</goal>
                         </goals>
