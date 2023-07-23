@@ -9,7 +9,9 @@ import com.qiuyj.streamexpr.api.{Token, TokenKind}
 private[parser] class NumericToken(private[this] val sourceString: String,
                                    private[this] val startPos: Int,
                                    private[this] val kind: TokenKind,
-                                   private[this] val numericInfo: NumericInfo) extends Token(sourceString, startPos, kind) {
+                                   private[this] val numericInfo: NumericInfo)
+    extends Token(sourceString, startPos, kind) {
+
   def getNumericValue: AnyVal = numericInfo.integerPart
 
   def getRadix: Int = numericInfo.radix

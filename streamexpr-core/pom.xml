@@ -45,6 +45,7 @@
                 <configuration>
                     <!-- scala编译器只编译scala代码，禁止编译java代码 -->
                     <sendJavaToScalac>false</sendJavaToScalac>
+                    <addScalacArgs>-deprecation</addScalacArgs>
                 </configuration>
                 <executions>
                     <execution>

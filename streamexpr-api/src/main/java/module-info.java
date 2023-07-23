@@ -5,4 +5,5 @@
 module streamexpr.api {
 
     exports com.qiuyj.streamexpr.api;
+    exports com.qiuyj.streamexpr.api.ast;
 }

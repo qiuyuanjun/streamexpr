@@ -230,7 +230,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     val length = spelExpr.length
     if (length == 3 || spelExpr.substring(2, length - 1).isBlank) {
       // spel表达式是空的(#{})，那么抛出异常
-      throw new IllegalStateException(s"The SPEL expression is empty at start position: $startPos")
+      lexError(s"The SPEL expression is empty at start position: $startPos")
     }
     stringContent ++= spelExpr
     kind = StreamExpressionTokenKind.SPEL

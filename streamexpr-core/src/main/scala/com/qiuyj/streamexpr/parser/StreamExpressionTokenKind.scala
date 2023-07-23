@@ -13,11 +13,16 @@ class StreamExpressionTokenKind(private[this] val tag: Int, private[this] val na
   override def getTag: Int = tag
 
   override def getName: String = name
+
+  override def toString: String = name
 }
 
 object StreamExpressionTokenKind {
 
   val TAG_SPEL = 101
 
-  val SPEL = new StreamExpressionTokenKind(TAG_SPEL, null)
+  val SPEL = new StreamExpressionTokenKind(TAG_SPEL, null) {
+
+    override def toString: String = "SPEL"
+  }
 }

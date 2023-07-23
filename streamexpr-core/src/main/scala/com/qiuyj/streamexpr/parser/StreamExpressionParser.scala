@@ -1,8 +1,9 @@
 package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.StreamExpression
-import com.qiuyj.streamexpr.StreamExpression.{Parameter, StreamOp}
+import com.qiuyj.streamexpr.StreamExpression.Parameter
 import com.qiuyj.streamexpr.api._
+import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamOpASTNode}
 import com.qiuyj.streamexpr.utils.ParseUtils
 
 /**
@@ -11,21 +12,25 @@ import com.qiuyj.streamexpr.utils.ParseUtils
  */
 class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[StreamExpression] {
 
-  override def parseExpression: StreamExpression = {
+  override def parseExpression: StreamExpression =
+    new StreamExpression(parseStreamExpression)
+
+  private def parseStreamExpression: StreamExpressionASTNode = {
     val streamOpSeparator = TokenKinds.getInstance getTokenKindByName "|"
-    val streamExpression = new StreamExpression
+    val streamExpressionBuilder = new StreamExpressionASTNode.Builder
     lexer.nextToken
     do {
-      streamExpression addStreamOp parseStreamOp
+      streamExpressionBuilder addStreamOp parseStreamOp
     }
     while (`match`(streamOpSeparator))
+    // 最后不能再有多余的Token，必须是EOF
     if (lexer.nextToken.getKind.getTag != TokenKind.TAG_EOF) {
-      parseError("")
+      parseError("Syntax error, ")
     }
-    streamExpression
+    streamExpressionBuilder.build
   }
 
-  private def parseStreamOp: StreamOp = {
+  private def parseStreamOp: StreamOpASTNode = {
     val tokenKinds = TokenKinds.getInstance
     val opName = lexer.getCurrentToken
     accept(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)
@@ -36,13 +41,17 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       parseParameter
     }
     while (`match`(parameterSeparator))
-    lexer.nextToken
-    accept(tokenKinds getTokenKindByName ")")
-    new StreamOp
+    nextThenAccept(tokenKinds getTokenKindByName ")")
+    null
   }
 
   private def parseParameter: Parameter = {
     new Parameter
+  }
+
+  private def nextThenAccept(kind: TokenKind): Unit = {
+    lexer.nextToken()
+    accept(kind)
   }
 
   private def accept(kind: TokenKind): Unit = {
