@@ -6,4 +6,6 @@ module streamexpr.core {
 
     requires scala.library;
     requires streamexpr.api;
+
+    exports com.qiuyj.streamexpr;
 }

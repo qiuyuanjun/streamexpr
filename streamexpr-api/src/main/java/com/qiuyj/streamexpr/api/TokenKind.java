@@ -26,4 +26,8 @@ public interface TokenKind {
     default boolean isKeyword() {
         return false;
     }
+
+    default boolean equals(TokenKind other) {
+        return this == other || other.getTag() == getTag();
+    }
 }

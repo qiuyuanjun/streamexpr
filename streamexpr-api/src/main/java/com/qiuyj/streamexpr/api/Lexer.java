@@ -13,6 +13,8 @@ public interface Lexer {
      */
     Token nextToken();
 
+    Token getCurrentToken();
+
     /**
      * 返回前一个词法单元，即{@link Token}对象
      * @return {@link Token}对象

@@ -42,6 +42,8 @@ class StreamExpressionScanner(private[this] val sourceString: String) extends Le
     currentToken
   }
 
+  override def getCurrentToken: Token = currentToken
+
   override def getPrevToken: Token = prevToken
 
   override def lookahead: Token = {
@@ -51,5 +53,4 @@ class StreamExpressionScanner(private[this] val sourceString: String) extends Le
     lookaheadToken = tokenizer.readToken
     lookaheadToken
   }
-
 }
