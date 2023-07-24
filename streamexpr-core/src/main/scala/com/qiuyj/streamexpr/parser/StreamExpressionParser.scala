@@ -3,7 +3,7 @@ package com.qiuyj.streamexpr.parser
 import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.StreamExpression.Parameter
 import com.qiuyj.streamexpr.api._
-import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamOpASTNode}
+import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
 import com.qiuyj.streamexpr.utils.ParseUtils
 
 /**
@@ -12,8 +12,11 @@ import com.qiuyj.streamexpr.utils.ParseUtils
  */
 class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[StreamExpression] {
 
-  override def parseExpression: StreamExpression =
-    new StreamExpression(parseStreamExpression)
+  override def parseExpression: StreamExpression = {
+    val visitor = new StreamExpressionVisitor
+    parseStreamExpression.visit[StreamExpressionVisitor](visitor)
+    visitor.getStreamExpression
+  }
 
   private def parseStreamExpression: StreamExpressionASTNode = {
     val streamOpSeparator = TokenKinds.getInstance getTokenKindByName "|"

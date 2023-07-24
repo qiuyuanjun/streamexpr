@@ -13,4 +13,8 @@ class StreamOpASTNode(private[this] val opName: ASTNode,
   override protected def visit(streamExpressionVisitor: StreamExpressionVisitor): Unit = {
     streamExpressionVisitor.visitStreamOp(this)
   }
+
+  private[ast] def getOpName: ASTNode = fastGetChildASTNode(0)
+
+  private[ast] def getParameters: Seq[ASTNode] = parameters
 }

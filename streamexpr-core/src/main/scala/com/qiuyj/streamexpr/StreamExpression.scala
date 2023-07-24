@@ -1,20 +1,21 @@
 package com.qiuyj.streamexpr
 
+import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.Expression
-import com.qiuyj.streamexpr.api.ast.ASTNode
-import com.qiuyj.streamexpr.ast.StreamExpressionVisitor
 import com.qiuyj.streamexpr.parser.StreamExpressionParser
 
 /**
  * @author qiuyj
  * @since 2023-06-29
  */
-class StreamExpression(private[this] val astNode: ASTNode) extends Expression {
+class StreamExpression extends Expression {
 
   override def getValue: Any = {
-    val visitor = new StreamExpressionVisitor(this)
-    astNode.visit[StreamExpressionVisitor](visitor)
     null
+  }
+
+  def addStreamOp(streamOp: StreamOp): Unit = {
+
   }
 
 }
