@@ -4,6 +4,9 @@ import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.Expression
 import com.qiuyj.streamexpr.parser.StreamExpressionParser
 
+import java.util.Objects
+import scala.collection.mutable.ArrayBuffer
+
 /**
  * @author qiuyj
  * @since 2023-06-29
@@ -32,9 +35,29 @@ object StreamExpression {
 
   class StreamOp {
 
+    private[this] var opName: String = _
+
+    private[this] var parameters: ArrayBuffer[Parameter] = _
+
+    def internalSetValue(value: Any): Unit = {
+      if (Objects.isNull(opName)) {
+        // opName必须是字符串
+        opName = value.toString
+      }
+      else {
+        if (Objects.isNull(parameters)) {
+          // 大多数情况下，参数不会超过5个
+          parameters = new ArrayBuffer[Parameter](5)
+        }
+        parameters += value.asInstanceOf[Parameter]
+      }
+    }
   }
 
   class Parameter {
 
+    def addParameter(): Unit = {
+
+    }
   }
 }

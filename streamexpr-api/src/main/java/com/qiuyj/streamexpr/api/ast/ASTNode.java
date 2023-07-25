@@ -15,6 +15,8 @@ public interface ASTNode {
      */
     interface Visitor {
 
-        void visitExpression(ExpressionASTNode expression);
+        void visitIdentifier(IdentifierASTNode identifierASTNode);
+
+        void visitStringLiteral(StringLiteralASTNode stringLiteralASTNode);
     }
 }

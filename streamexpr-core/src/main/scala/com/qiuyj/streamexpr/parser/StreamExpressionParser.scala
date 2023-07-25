@@ -1,10 +1,12 @@
 package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.StreamExpression
-import com.qiuyj.streamexpr.StreamExpression.Parameter
 import com.qiuyj.streamexpr.api._
-import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
+import com.qiuyj.streamexpr.api.ast.{ExpressionASTNode, IdentifierASTNode}
+import com.qiuyj.streamexpr.ast.{SPELASTNode, StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
 import com.qiuyj.streamexpr.utils.ParseUtils
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * @author qiuyj
@@ -35,21 +37,28 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
 
   private def parseStreamOp: StreamOpASTNode = {
     val tokenKinds = TokenKinds.getInstance
-    val opName = lexer.getCurrentToken
+    val opName = new IdentifierASTNode(lexer.getCurrentToken.getSourceString)
     accept(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)
     accept(tokenKinds getTokenKindByName "(")
-    // 解析参数
     val parameterSeparator = tokenKinds getTokenKindByName ","
+    // 解析参数
+    // 大多数情况参数不会超过5个
+    val parameters = new ArrayBuffer[ExpressionASTNode](5)
     do {
-      parseParameter
+      parameters += parseParameter
     }
     while (`match`(parameterSeparator))
     nextThenAccept(tokenKinds getTokenKindByName ")")
-    null
+    new StreamOpASTNode(opName, parameters.toSeq: _*)
   }
 
-  private def parseParameter: Parameter = {
-    new Parameter
+  private def parseParameter: ExpressionASTNode = {
+    val currentToken = lexer.getCurrentToken
+    if (`match`(StreamExpressionTokenKind.SPEL)) {
+      new SPELASTNode(currentToken.getSourceString)
+    }
+    else
+      null
   }
 
   private def nextThenAccept(kind: TokenKind): Unit = {

@@ -4,15 +4,14 @@ package com.qiuyj.streamexpr.api.ast;
  * @author qiuyj
  * @since 2023-07-23
  */
-public class DefaultExpressionASTNode extends AbstractASTNode implements ExpressionASTNode {
+public class DefaultOperatorASTNode extends AbstractASTNode implements OperatorASTNode {
 
-    public DefaultExpressionASTNode(AbstractASTNode left, AbstractASTNode right, AbstractASTNode operand) {
+    public DefaultOperatorASTNode(AbstractASTNode left, AbstractASTNode right, AbstractASTNode operand) {
         super(left, operand, right);
     }
 
     @Override
     public <T extends Visitor> void visit(T visitor) {
-        visitor.visitExpression(this);
     }
 
     @Override
