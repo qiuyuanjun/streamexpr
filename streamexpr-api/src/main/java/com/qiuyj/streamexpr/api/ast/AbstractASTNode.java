@@ -36,6 +36,7 @@ public abstract class AbstractASTNode implements ASTNode {
         children = EMPTY;
     }
 
+    @Override
     public ASTNode getChildASTNode(int index) {
         Objects.checkIndex(index, children.length);
         return children[index];

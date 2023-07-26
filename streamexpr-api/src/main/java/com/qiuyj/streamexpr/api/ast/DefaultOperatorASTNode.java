@@ -11,7 +11,7 @@ public class DefaultOperatorASTNode extends AbstractASTNode implements OperatorA
     }
 
     @Override
-    public <T extends Visitor> void visit(T visitor) {
+    public <T extends ASTNodeVisitor> void visit(T visitor) {
     }
 
     @Override

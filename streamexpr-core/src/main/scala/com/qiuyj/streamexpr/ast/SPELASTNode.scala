@@ -1,6 +1,6 @@
 package com.qiuyj.streamexpr.ast
 
-import com.qiuyj.streamexpr.api.ast.{ASTNode, ExpressionASTNode, SingleValueASTNode}
+import com.qiuyj.streamexpr.api.ast.{ASTNodeVisitor, ExpressionASTNode, SingleValueASTNode}
 
 /**
  * @author qiuyj
@@ -15,7 +15,7 @@ class SPELASTNode(private[this] val spelString: String) extends SingleValueASTNo
   /**
    * 采用访问者模式，访问当前节点
    */
-  override def visit[T <: ASTNode.Visitor](visitor: T): Unit = {
+  override def visit[T <: ASTNodeVisitor](visitor: T): Unit = {
     visitor.asInstanceOf[StreamExpressionVisitor].visitSPELExpression(this)
   }
 }

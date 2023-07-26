@@ -39,7 +39,7 @@ object StreamExpression {
 
     private[this] var parameters: ArrayBuffer[Parameter] = _
 
-    def internalSetValue(value: Any): Unit = {
+    def internalSetValue(value: AnyRef): Unit = {
       if (Objects.isNull(opName)) {
         // opName必须是字符串
         opName = value.toString
@@ -56,8 +56,5 @@ object StreamExpression {
 
   class Parameter {
 
-    def addParameter(): Unit = {
-
-    }
   }
 }

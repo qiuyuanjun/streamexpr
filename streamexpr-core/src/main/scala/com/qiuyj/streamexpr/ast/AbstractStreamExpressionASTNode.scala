@@ -1,6 +1,6 @@
 package com.qiuyj.streamexpr.ast
 
-import com.qiuyj.streamexpr.api.ast.{ASTNode, AbstractASTNode}
+import com.qiuyj.streamexpr.api.ast.{ASTNode, ASTNodeVisitor, AbstractASTNode}
 
 /**
  * @author qiuyj
@@ -12,7 +12,7 @@ abstract class AbstractStreamExpressionASTNode(private[this] val first: ASTNode,
 
   protected def visit(streamExpressionVisitor: StreamExpressionVisitor): Unit
 
-  override def visit[T <: ASTNode.Visitor](visitor: T): Unit = {
+  override def visit[T <: ASTNodeVisitor](visitor: T): Unit = {
     visitor match {
       case streamExpressionVisitor: StreamExpressionVisitor =>
         visit(streamExpressionVisitor)

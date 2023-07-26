@@ -8,7 +8,7 @@ package com.qiuyj.streamexpr.api.ast;
 public record StringLiteralASTNode(String stringLiteral) implements SingleValueASTNode {
 
     @Override
-    public <T extends Visitor> void visit(T visitor) {
+    public <T extends ASTNodeVisitor> void visit(T visitor) {
         visitor.visitStringLiteral(this);
     }
 
