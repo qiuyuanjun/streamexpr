@@ -2,7 +2,7 @@ package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.api._
-import com.qiuyj.streamexpr.api.ast.{ExpressionASTNode, IdentifierASTNode}
+import com.qiuyj.streamexpr.api.ast.{ASTNode, IdentifierASTNode, StringLiteralASTNode}
 import com.qiuyj.streamexpr.ast.{SPELASTNode, StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
 import com.qiuyj.streamexpr.utils.ParseUtils
 
@@ -13,6 +13,11 @@ import scala.collection.mutable.ArrayBuffer
  * @since 2023-06-29
  */
 class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[StreamExpression] {
+
+  /**
+   * 用于存储预读的token
+   */
+  private[this] var lookaheadToken: Token = _
 
   override def parseExpression: StreamExpression = {
     val visitor = new StreamExpressionVisitor
@@ -29,21 +34,19 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     }
     while (`match`(streamOpSeparator))
     // 最后不能再有多余的Token，必须是EOF
-    if (lexer.nextToken.getKind.getTag != TokenKind.TAG_EOF) {
-      parseError("Syntax error, ")
-    }
+    nextThenAccept(TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_EOF)
     streamExpressionBuilder.build
   }
 
   private def parseStreamOp: StreamOpASTNode = {
     val tokenKinds = TokenKinds.getInstance
-    val opName = new IdentifierASTNode(lexer.getCurrentToken.getSourceString)
     accept(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)
+    val opName = new IdentifierASTNode(lexer.getPrevToken.getSourceString)
     accept(tokenKinds getTokenKindByName "(")
     val parameterSeparator = tokenKinds getTokenKindByName ","
     // 解析参数
     // 大多数情况参数不会超过5个
-    val parameters = new ArrayBuffer[ExpressionASTNode](5)
+    val parameters = new ArrayBuffer[ASTNode](5)
     do {
       parameters += parseParameter
     }
@@ -52,17 +55,43 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     new StreamOpASTNode(opName, parameters.toSeq: _*)
   }
 
-  private def parseParameter: ExpressionASTNode = {
-    val currentToken = lexer.getCurrentToken
-    if (`match`(StreamExpressionTokenKind.SPEL)) {
-      new SPELASTNode(currentToken.getSourceString)
+  private def parseParameter: ASTNode = {
+    val tokenKinds = TokenKinds.getInstance
+    if (`match`(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)) {
+      // lookahead，看下一个token是什么类型，根据其类型解析对应的
+      lookaheadToken = lexer.lookahead
+      if (lookaheadMatch(tokenKinds getTokenKindByName "|")) {
+        // 属性级联调用
+        parseNestedProperty
+      }
+      else if (lookaheadMatch(tokenKinds getTokenKindByName ",")) {
+        // 函数
+        lexer.nextToken
+        null
+      }
+      else {
+        // identifier
+        new IdentifierASTNode(lexer.getCurrentToken.getSourceString)
+      }
     }
-    else
-      null
+    else if (`match`(StreamExpressionTokenKind.SPEL)) {
+      new SPELASTNode(lexer.getPrevToken.getSourceString)
+    }
+    else if (`match`(tokenKinds getTokenKindByTag TokenKind.TAG_STRING_LITERAL)) {
+      new StringLiteralASTNode(lexer.getPrevToken.getSourceString)
+    }
+    else {
+      parseError("")
+      throw new IllegalStateException("Never reach here")
+    }
+  }
+
+  private def parseNestedProperty: ASTNode = {
+    null
   }
 
   private def nextThenAccept(kind: TokenKind): Unit = {
-    lexer.nextToken()
+    lexer.nextToken
     accept(kind)
   }
 
@@ -79,6 +108,10 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     }
     else
       false
+  }
+
+  private def lookaheadMatch(kind: TokenKind): Boolean = {
+    lookaheadToken.getKind equals kind
   }
 
   private def parseError(errorMessage: String): Unit =

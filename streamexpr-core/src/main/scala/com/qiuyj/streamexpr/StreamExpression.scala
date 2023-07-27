@@ -56,5 +56,46 @@ object StreamExpression {
 
   class Parameter {
 
+    private[this] var value: Any = _
+
+    private[this] var kind: Kind = _
+
+    def initParameter(value: Any, kind: Kind): Unit = {
+      this.value = value
+      this.kind = kind
+    }
+
+    def getValue(valueContext: Any): Any = {
+      if (kind == IDENTIFIER && value.toString == "_")
+        valueContext
+      else
+        kind.getValue(valueContext)
+    }
+  }
+
+  trait Kind {
+
+    def getValue(valueContext: Any): Any
+  }
+
+  case object IDENTIFIER extends Kind {
+
+    override def getValue(valueContext: Any): Any = {
+
+    }
+  }
+
+  case object SPEL extends Kind {
+
+    override def getValue(valueContext: Any): Any = {
+
+    }
+  }
+
+  case object STRING_LITERAL extends Kind {
+
+    override def getValue(valueContext: Any): Any = {
+
+    }
   }
 }

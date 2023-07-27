@@ -36,7 +36,7 @@ public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeV
             pushObject(currentObject);
         }
         // 执行访问节点代码
-        visitAction.doVisit(parentObject, astNode);
+        visitAction.doVisit(parentObject, currentObject, astNode);
         // 执行访问节点之后的代码
         visitAction.postVisit(parentObject,
                 needPushAndPopCurrentObject ? popObject() : null,
@@ -63,7 +63,7 @@ public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeV
         public CurrentObjectType createCurrentObject(AstType astNode) {
             ParameterizedType p = (ParameterizedType) getClass().getGenericSuperclass();
             Type[] typeArgs = p.getActualTypeArguments();
-            if (typeArgs.length != 2) {
+            if (typeArgs.length < 2) {
                 throw new IllegalStateException("Must specify the parent object type parameter and current object type parameter!");
             }
             Class<CurrentObjectType> currentObjectType = (Class<CurrentObjectType>) typeArgs[1];
@@ -75,7 +75,9 @@ public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeV
             }
         }
 
-        public abstract void doVisit(ParentObjectType parentObject, AstType astNode);
+        public void doVisit(ParentObjectType parentObject, CurrentObjectType currentObject, AstType astNode) {
+            // do nothing
+        }
 
         public void postVisit(ParentObjectType parentObject, CurrentObjectType currentObject, AstType astNode) {
             // do nothing

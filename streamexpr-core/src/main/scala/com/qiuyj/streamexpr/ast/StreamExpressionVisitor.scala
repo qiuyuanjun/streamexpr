@@ -18,9 +18,11 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
 
       override def createCurrentObject(astNode: IdentifierASTNode): AnyRef = null
 
-      override def doVisit(parentObject: AnyRef, astNode: IdentifierASTNode): Unit = parentObject match {
+      override def postVisit(parentObject: AnyRef, currentObject: AnyRef, astNode: IdentifierASTNode): Unit = parentObject match {
         case streamOp: StreamOp =>
           streamOp.internalSetValue(astNode.getValue)
+        case parameter: Parameter =>
+          parameter.initParameter(astNode.getValue, StreamExpression.IDENTIFIER)
         case _ =>
       }
     }, astNode)
@@ -31,8 +33,9 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
 
       override def createCurrentObject(astNode: StringLiteralASTNode): String = null
 
-      override def doVisit(parentObject: Parameter, astNode: StringLiteralASTNode): Unit = {
-
+      override def postVisit(parentObject: Parameter, currentObject: String, astNode: StringLiteralASTNode): Unit = {
+        // 将当前字符串字面量设置到parameter参数里面
+        parentObject.initParameter(astNode.getValue, StreamExpression.STRING_LITERAL)
       }
     }, astNode)
   }
@@ -42,7 +45,7 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
 
       override def createCurrentObject(astNode: StreamExpressionASTNode): StreamExpression = null
 
-      override def doVisit(parentObject: StreamExpression, astNode: StreamExpressionASTNode): Unit = {
+      override def doVisit(parentObject: StreamExpression, currentObject: StreamExpression, astNode: StreamExpressionASTNode): Unit = {
         astNode.getIntermediateOps.foreach(visit)
         visit(astNode.getTerminateOp)
       }
@@ -52,7 +55,7 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
   def visitStreamOp(astNode: StreamOpASTNode): Unit = {
     executeVisit[StreamExpression, StreamOp, StreamOpASTNode](new VisitAction[StreamExpression, StreamOp, StreamOpASTNode] {
 
-      override def doVisit(parentObject: StreamExpression, astNode: StreamOpASTNode): Unit = {
+      override def doVisit(parentObject: StreamExpression, currentObject: StreamOp, astNode: StreamOpASTNode): Unit = {
         // 解析操作名称
         visit(astNode.getOpName)
         // 解析操作所需要的各种参数
@@ -68,10 +71,11 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
   def visitSPELExpression(astNode: SPELASTNode): Unit = {
     executeVisit[StreamOp, Parameter, SPELASTNode](new VisitAction[StreamOp, Parameter, SPELASTNode] {
 
-      override def doVisit(parentObject: StreamOp, astNode: SPELASTNode): Unit = {
+      override def doVisit(parentObject: StreamOp, currentObject: Parameter, astNode: SPELASTNode): Unit = {
         val spelExpr: Expression = new SpelExpressionParser()
           .parseExpression(astNode.getSourceString, ParserContext.TEMPLATE_EXPRESSION)
-        // todo
+        // 初始化参数
+        currentObject.initParameter(spelExpr, StreamExpression.SPEL)
       }
 
       override def postVisit(parentObject: StreamOp, currentObject: Parameter, astNode: SPELASTNode): Unit = {
