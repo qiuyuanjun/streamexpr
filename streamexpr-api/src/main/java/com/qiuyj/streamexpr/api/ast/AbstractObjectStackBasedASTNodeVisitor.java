@@ -45,11 +45,11 @@ public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeV
         pushObject(parentObject);
     }
 
-    protected void pushObject(Object obj) {
+    private void pushObject(Object obj) {
         objectStack.push(obj);
     }
 
-    protected <T> T popObject() {
+    private <T> T popObject() {
         return (T) objectStack.pop();
     }
 

@@ -1,0 +1,20 @@
+STREAM_EXPRESSION: STREAM_OP ( BAR STREAM_OP )*
+
+STREAM_OP: OP_NAME LPARAN PARAMETER ( COMMA PARAMETER )* RPARAN
+
+OP_NAME: IDENTIFIER
+
+IDENTIFIER: IDENTIFIER_START (IDENTIFIER_PART)*
+
+IDENTIFIER_PART: IDENTIFIER_START | DIGIT
+
+IDENTIFIER_START: "_" | DOLLAR | LETTER_UPPER | LETTER_LOWER
+
+LPARAN: "("
+RPARAN: ")"
+COMMA: ","
+BAR: "|"
+DOLLAR: "$"
+DIGIT: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+LETTER_UPPER: "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+LETTER_LOWER: "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"

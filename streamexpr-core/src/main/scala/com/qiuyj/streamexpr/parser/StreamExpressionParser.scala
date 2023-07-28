@@ -2,8 +2,8 @@ package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.api._
-import com.qiuyj.streamexpr.api.ast.{ASTNode, IdentifierASTNode, StringLiteralASTNode}
-import com.qiuyj.streamexpr.ast.{SPELASTNode, StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
+import com.qiuyj.streamexpr.api.ast.{ASTNode, IdentifierASTNode}
+import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
 import com.qiuyj.streamexpr.utils.ParseUtils
 
 import scala.collection.mutable.ArrayBuffer
@@ -21,14 +21,23 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
 
   override def parseExpression: StreamExpression = {
     val visitor = new StreamExpressionVisitor
+    lexer.nextToken
     parseStreamExpression.visit[StreamExpressionVisitor](visitor)
     visitor.getStreamExpression
   }
 
+  /*
+   * STREAM_EXPRESSION: STREAM_OP ( BAR STREAM_OP )*
+   * BAR: "|"
+   */
   private def parseStreamExpression: StreamExpressionASTNode = {
     val streamOpSeparator = TokenKinds.getInstance getTokenKindByName "|"
     val streamExpressionBuilder = new StreamExpressionASTNode.Builder
-    lexer.nextToken
+//    streamExpressionBuilder addStreamOp parseStreamOp
+//    while (`match`(streamOpSeparator)) {
+//      streamExpressionBuilder addStreamOp parseStreamOp
+//    }
+    // 下面代码比上面代码更加简洁
     do {
       streamExpressionBuilder addStreamOp parseStreamOp
     }
@@ -38,6 +47,14 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     streamExpressionBuilder.build
   }
 
+  /*
+   * STREAM_OP: OP_NAME LPARAN PARAMETER ( COMMA PARAMETER )* RPARAN
+   * LPARAN: "("
+   * RPARAN: ")"
+   * COMMA: ","
+   * OP_NAME: IDENTIFIER
+   * IDENTIFIER: IDENTIFIER_START (IDENTIFIER_PART)*
+   */
   private def parseStreamOp: StreamOpASTNode = {
     val tokenKinds = TokenKinds.getInstance
     accept(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)
@@ -56,37 +73,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   private def parseParameter: ASTNode = {
-    val tokenKinds = TokenKinds.getInstance
-    if (`match`(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)) {
-      // lookahead，看下一个token是什么类型，根据其类型解析对应的
-      lookaheadToken = lexer.lookahead
-      if (lookaheadMatch(tokenKinds getTokenKindByName "|")) {
-        // 属性级联调用
-        parseNestedProperty
-      }
-      else if (lookaheadMatch(tokenKinds getTokenKindByName ",")) {
-        // 函数
-        lexer.nextToken
-        null
-      }
-      else {
-        // identifier
-        new IdentifierASTNode(lexer.getCurrentToken.getSourceString)
-      }
-    }
-    else if (`match`(StreamExpressionTokenKind.SPEL)) {
-      new SPELASTNode(lexer.getPrevToken.getSourceString)
-    }
-    else if (`match`(tokenKinds getTokenKindByTag TokenKind.TAG_STRING_LITERAL)) {
-      new StringLiteralASTNode(lexer.getPrevToken.getSourceString)
-    }
-    else {
-      parseError("")
-      throw new IllegalStateException("Never reach here")
-    }
-  }
 
-  private def parseNestedProperty: ASTNode = {
     null
   }
 
