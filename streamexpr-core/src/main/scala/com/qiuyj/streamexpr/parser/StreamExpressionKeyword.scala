@@ -34,4 +34,8 @@ object StreamExpressionKeyword {
   val is_null = StreamExpressionKeyword("is_null")
   val NON_NULL = StreamExpressionKeyword("NON_NULL")
   val non_null = StreamExpressionKeyword("non_null")
+  val OR = StreamExpressionKeyword("OR")
+  val or = StreamExpressionKeyword("or")
+  val AND = StreamExpressionKeyword("AND")
+  val and = StreamExpressionKeyword("and")
 }

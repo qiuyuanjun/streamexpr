@@ -61,6 +61,8 @@ public enum TokenKindImpl implements TokenKind {
     GTEQ(">="),
     LT("<"),
     LTEQ("<="),
+    BARBAR("||"),
+    AMPAMP("&&"),
 
     EOF(TokenKind.TAG_EOF);
 

@@ -26,7 +26,9 @@ public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeV
         throw new IllegalStateException("");
     }
 
-    protected <ParentObjectType, CurrentObjectType, AstType> void executeVisit(VisitAction<ParentObjectType, CurrentObjectType, AstType> visitAction, AstType astNode) {
+    protected <ParentObjectType, CurrentObjectType, AstType> void executeVisit(
+            VisitAction<ParentObjectType, CurrentObjectType, AstType> visitAction,
+            AstType astNode) {
         // 父对象出栈
         ParentObjectType parentObject = popObject();
         // 创建当前对象并入栈

@@ -27,7 +27,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   /*
-   * STREAM_EXPRESSION: STREAM_OP ( BAR STREAM_OP )*
+   * StreamExpression: StreamOp ( BAR StreamOp )*
    * BAR: "|"
    */
   private def parseStreamExpression: StreamExpressionASTNode = {
@@ -48,12 +48,12 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   /*
-   * STREAM_OP: OP_NAME LPARAN PARAMETER ( COMMA PARAMETER )* RPARAN
+   * StreamOp: OpName LPARAN Parameter ( COMMA Parameter )* RPARAN
    * LPARAN: "("
    * RPARAN: ")"
    * COMMA: ","
-   * OP_NAME: IDENTIFIER
-   * IDENTIFIER: IDENTIFIER_START (IDENTIFIER_PART)*
+   * OpName: Identifier
+   * Identifier: IdentifierStart (IdentifierPart)*
    */
   private def parseStreamOp: StreamOpASTNode = {
     val tokenKinds = TokenKinds.getInstance
@@ -72,8 +72,28 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     new StreamOpASTNode(opName, parameters.toSeq: _*)
   }
 
-  private def parseParameter: ASTNode = {
+  /*
+   * Parameter: Expr
+   */
+  private def parseParameter: ASTNode = parseExpr
 
+  /*
+   * Expr: OrExpr
+   */
+  private def parseExpr: ASTNode = {
+    val left: ASTNode = parseOrExpr
+    null
+  }
+
+  /*
+   * OrExpr: AndExpr ( Or AndExpr )*
+   */
+  private def parseOrExpr: ASTNode = {
+    val left: ASTNode = parseAndExpr
+    null
+  }
+
+  private def parseAndExpr: ASTNode = {
     null
   }
 

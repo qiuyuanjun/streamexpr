@@ -1,5 +1,7 @@
 package com.qiuyj.streamexpr.api;
 
+import com.qiuyj.streamexpr.api.utils.StringUtils;
+
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -32,7 +34,6 @@ public class TokenKinds {
         }
     }
 
-
     private final ConcurrentMap<String, TokenKind> tokenKindNames = new ConcurrentHashMap<>(64);
 
     private final ConcurrentMap<Integer, TokenKind> tokenKindTags = new ConcurrentHashMap<>(64);
@@ -42,8 +43,7 @@ public class TokenKinds {
     public void registerTokenKind(TokenKind tokenKind) {
         Objects.requireNonNull(tokenKind);
         String name = tokenKind.getName();
-        if (Objects.nonNull(name)
-                && name.length() > 0
+        if (StringUtils.isNotEmpty(name)
                 && Objects.nonNull(tokenKindNames.putIfAbsent(name, tokenKind))) {
             throw new IllegalStateException("A TokenKind with the current name '" + name + "' already exists");
         }

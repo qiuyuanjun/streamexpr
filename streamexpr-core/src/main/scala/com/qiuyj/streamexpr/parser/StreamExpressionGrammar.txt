@@ -1,19 +1,36 @@
-STREAM_EXPRESSION: STREAM_OP ( BAR STREAM_OP )*
+StreamExpression: StreamOp ( BAR StreamOp )*
 
-STREAM_OP: OP_NAME LPARAN PARAMETER ( COMMA PARAMETER )* RPARAN
+StreamOp: OpName LPARAN Parameter ( COMMA Parameter )* RPARAN
 
-OP_NAME: IDENTIFIER
+OpName: Identifier
 
-IDENTIFIER: IDENTIFIER_START (IDENTIFIER_PART)*
+Identifier: IdentifierStart ( IdentifierPart )*
 
-IDENTIFIER_PART: IDENTIFIER_START | DIGIT
+IdentifierPart: IdentifierStart | DIGIT
 
-IDENTIFIER_START: "_" | DOLLAR | LETTER_UPPER | LETTER_LOWER
+IdentifierStart: UNDERLINE | DOLLAR | LETTER_UPPER | LETTER_LOWER
 
+Parameter: Expr
+
+Expr: OrExpr
+
+OrExpr: AndExpr ( Or AndExpr )*
+
+Or: BARBAR | OR
+
+AndExpr:
+
+And: AMPAMP | AND
+
+UNDERLINE: "_"
 LPARAN: "("
 RPARAN: ")"
 COMMA: ","
 BAR: "|"
+BARBAR: "||"
+OR: "or" | "OR"
+AMPAMP: "&&"
+AND: "and" | "AND"
 DOLLAR: "$"
 DIGIT: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 LETTER_UPPER: "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"

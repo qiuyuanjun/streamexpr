@@ -105,7 +105,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     val startPos = skipWhitespaceThenNext
     var numericInfo: NumericInfo = null
     character match {
-      case 0 => kind = TokenKinds.getInstance.getTokenKindByTag(TokenKind.TAG_EOF)
+      case 0 => kind = TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_EOF
       case 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' |
            'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' |
            'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' |
@@ -126,78 +126,42 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         next
         readSpelExpression(startPos)
       case '.' =>
-        kind = TokenKinds.getInstance.getTokenKindByName(".")
+        kind = TokenKinds.getInstance getTokenKindByName "."
       case '(' =>
-        kind = TokenKinds.getInstance.getTokenKindByName("(")
+        kind = TokenKinds.getInstance getTokenKindByName "("
       case ')' =>
-        kind = TokenKinds.getInstance.getTokenKindByName(")")
+        kind = TokenKinds.getInstance getTokenKindByName ")"
       case ',' =>
-        kind = TokenKinds.getInstance.getTokenKindByName(",")
+        kind = TokenKinds.getInstance getTokenKindByName ","
       case '-' =>
-        lookahead
-        kind =
-          if (lookaheadIs('-')) {
-            next
-            TokenKinds.getInstance.getTokenKindByName("--")
-          }
-          else if (lookaheadIs('=')) {
-            next
-            TokenKinds.getInstance.getTokenKindByName("-=")
-          }
-          else TokenKinds.getInstance.getTokenKindByName("-")
+        kind = lookaheadTokenIfMatch('-', '-', '=')
       case '+' =>
-        lookahead
-        kind =
-          if (lookaheadIs('+')) {
-            next
-            TokenKinds.getInstance.getTokenKindByName("++")
-          }
-          else if (lookaheadIs('=')) {
-            next
-            TokenKinds.getInstance.getTokenKindByName("+=")
-          }
-          else TokenKinds.getInstance.getTokenKindByName("+")
+        kind = lookaheadTokenIfMatch('+', '+', '=')
       case '|' =>
-        kind = TokenKinds.getInstance.getTokenKindByName("|")
+        kind = lookaheadTokenIfMatch('|', '|')
       case '*' =>
-        lookahead
-        kind = if (lookaheadIs('=')) {
-          next
-          TokenKinds.getInstance.getTokenKindByName("*=")
-        }
-        else TokenKinds.getInstance.getTokenKindByName("*")
+        kind = lookaheadTokenIfMatch('*', '=')
       case '/' =>
-        lookahead
-        kind = if (lookaheadIs('=')) {
-          next
-          TokenKinds.getInstance.getTokenKindByName("/=")
-        }
-        else TokenKinds.getInstance.getTokenKindByName("/")
+        kind = lookaheadTokenIfMatch('/', '=')
       case '>' =>
-        lookahead
-        kind = if (lookaheadIs('=')) {
-          next
-          TokenKinds.getInstance.getTokenKindByName(">=")
-        }
-        else TokenKinds.getInstance.getTokenKindByName(">")
+        kind = lookaheadTokenIfMatch('>', '=')
       case '<' =>
-        lookahead
-        kind = if (lookaheadIs('=')) {
-          next
-          TokenKinds.getInstance.getTokenKindByName("<=")
-        }
-        else TokenKinds.getInstance.getTokenKindByName("<")
+        kind = lookaheadTokenIfMatch('<', '=')
       case '=' =>
-        lookahead
-        kind = if (lookaheadIs('=')) {
-          next
-          TokenKinds.getInstance.getTokenKindByName("==")
-        }
-        else TokenKinds.getInstance.getTokenKindByName("=")
+        kind = lookaheadTokenIfMatch('=', '=')
       case '[' =>
-        kind = TokenKinds.getInstance.getTokenKindByName("[")
+        kind = TokenKinds.getInstance getTokenKindByName "["
       case ']' =>
-        kind = TokenKinds.getInstance.getTokenKindByName("]")
+        kind = TokenKinds.getInstance getTokenKindByName "]"
+      case '&' => // 目前只支持&&，不支持单个&
+        lookahead
+        if (lookaheadIs('&')) {
+          next
+          kind = TokenKinds.getInstance getTokenKindByName "&&"
+        }
+        else {
+          lexError("Illegal character '&'")
+        }
       case _ =>
         lexError(s"Illegal character '$character'")
         throw new IllegalStateException("Never reach here!")
@@ -207,6 +171,30 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     else new Token(sourceString, startPos, kind)
   }
 
+  /**
+   * 判断当前字符的下一个字符是否是给定的字符，如果是，那么创建这两个字符组成的TokenKind，否则值创建当前字符组成的TokenKind
+   * @param currentCharacter 当前字符
+   * @param lookaheadCharacters 下一个字符
+   * @return TokenKind
+   */
+  private def lookaheadTokenIfMatch(currentCharacter: Char, lookaheadCharacters: Char*): TokenKind = {
+    lookahead
+    val iter = lookaheadCharacters.iterator
+    val tokenKinds = TokenKinds.getInstance
+    while (iter.hasNext) {
+      val nextChar = iter.next()
+      if (lookaheadIs(nextChar)) {
+        next
+        return tokenKinds getTokenKindByName Array.apply(currentCharacter, nextChar).mkString
+      }
+    }
+    tokenKinds getTokenKindByName currentCharacter.toString
+  }
+
+  /**
+   * 解析spel表达式，以 #{ 开头，以 } 结尾
+   * @param startPos spel表达式的起始位置
+   */
   private def readSpelExpression(startPos: Int): Unit = {
     // spel表达式，以 #{ 开头，以 } 结尾
     if (!is('{')) {
@@ -361,6 +349,10 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     (result, hasResult)
   }
 
+  /**
+   * 解析标识符
+   * @param startPos 标识符的起始位置
+   */
   private def readIdentifier(startPos: Int): Unit = {
     var canContinue = true
     while (canContinue) character match {
@@ -405,6 +397,11 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     value >= lo && value <= hi
   }
 
+  /**
+   * 判断给定的字符是否和预读的字符一致
+   * @param c 要判断的字符
+   * @return 判断结果，如果一致，那么返回true，否则返回false
+   */
   private def lookaheadIs(c: Char): Boolean = lookaheadCharacter == c
 
   private def lexError(errorMessage: String): Unit = {
