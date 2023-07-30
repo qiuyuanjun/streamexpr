@@ -9,6 +9,13 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>streamexpr-api</artifactId>
+    <artifactId>streamexpr-test</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.qiuyj</groupId>
+            <artifactId>streamexpr-core</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

@@ -162,6 +162,12 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         else {
           lexError("Illegal character '&'")
         }
+      case '@' =>
+        // 从上下文里面获取参数
+        kind = TokenKinds.getInstance getTokenKindByName "@"
+//        next
+//        readContextVariable()
+//        pushback()
       case _ =>
         lexError(s"Illegal character '$character'")
         throw new IllegalStateException("Never reach here!")
@@ -188,7 +194,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         return tokenKinds getTokenKindByName Array.apply(currentCharacter, nextChar).mkString
       }
     }
-    tokenKinds getTokenKindByName currentCharacter.toString
+    tokenKinds getTokenKindByName String.valueOf(currentCharacter)
   }
 
   /**

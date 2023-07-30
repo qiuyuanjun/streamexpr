@@ -18,4 +18,16 @@ public interface ASTNodeVisitor {
      * @param stringLiteralASTNode 字符串字面量抽象语法树节点，内部存储了字符串字面量
      */
     void visitStringLiteral(StringLiteralASTNode stringLiteralASTNode);
+
+    /**
+     * 访问or表达式的抽象语法树节点
+     * @param orExpressionASTNode or表达式的抽象语法树节点
+     */
+    void visitOrExpression(OrExpressionASTNode orExpressionASTNode);
+
+    /**
+     * 访问and表达式的抽象语法树节点
+     * @param andExpressionASTNode or表达式的抽象语法树节点
+     */
+    void visitAndExpression(AndExpressionASTNode andExpressionASTNode);
 }

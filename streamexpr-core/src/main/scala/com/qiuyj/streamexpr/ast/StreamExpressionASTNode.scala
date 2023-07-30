@@ -1,14 +1,15 @@
 package com.qiuyj.streamexpr.ast
 
-import scala.collection.mutable.ArrayBuffer
+import java.util
+import scala.jdk.javaapi.CollectionConverters
 
 /**
  * @author qiuyj
  * @since 2023-07-23
  */
-class StreamExpressionASTNode(private[this] val first: StreamOpASTNode,
-                              private[this] val others: StreamOpASTNode*)
-   extends AbstractStreamExpressionASTNode(first, others: _*) {
+class StreamExpressionASTNode(private[this] val terminateOp: StreamOpASTNode,
+                              private[this] val intermediateOps: StreamOpASTNode*)
+   extends AbstractStreamExpressionASTNode(terminateOp, intermediateOps: _*) {
 
   override protected def visit(streamExpressionVisitor: StreamExpressionVisitor): Unit = {
     streamExpressionVisitor.visitStreamExpression(this)
@@ -17,17 +18,17 @@ class StreamExpressionASTNode(private[this] val first: StreamOpASTNode,
   private[ast] def getTerminateOp: StreamOpASTNode =
     fastGetChildASTNode(0).asInstanceOf[StreamOpASTNode]
 
-  private[ast] def getIntermediateOps: Seq[StreamOpASTNode] = others
+  private[ast] def getIntermediateOps: Seq[StreamOpASTNode] = intermediateOps
 }
 
 object StreamExpressionASTNode {
 
   class Builder {
 
-    private[this] val streamOps: ArrayBuffer[StreamOpASTNode] = new ArrayBuffer[StreamOpASTNode](6)
+    private[this] val streamOps: util.Deque[StreamOpASTNode] = new util.ArrayDeque[StreamOpASTNode](6)
 
     def addStreamOp(streamOp: StreamOpASTNode): this.type = {
-      streamOps addOne streamOp
+      streamOps addLast streamOp
       this
     }
 
@@ -35,8 +36,8 @@ object StreamExpressionASTNode {
       if (streamOps.isEmpty) {
         throw new IllegalStateException("A stream expression must have at least one stream operation")
       }
-      val terminateOp = streamOps.remove(streamOps.size - 1)
-      val intermediateOps = if (streamOps.isEmpty) Seq.empty else streamOps.toSeq
+      val terminateOp = streamOps.removeLast()
+      val intermediateOps = if (streamOps.isEmpty) Seq.empty else CollectionConverters.asScala(streamOps).toSeq
       new StreamExpressionASTNode(terminateOp, intermediateOps: _*)
     }
   }

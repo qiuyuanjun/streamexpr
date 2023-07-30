@@ -11,6 +11,7 @@
     <modules>
         <module>streamexpr-api</module>
         <module>streamexpr-core</module>
+        <module>streamexpr-test</module>
     </modules>
 
     <properties>
@@ -27,6 +28,12 @@
             <dependency>
                 <groupId>com.qiuyj</groupId>
                 <artifactId>streamexpr-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.qiuyj</groupId>
+                <artifactId>streamexpr-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

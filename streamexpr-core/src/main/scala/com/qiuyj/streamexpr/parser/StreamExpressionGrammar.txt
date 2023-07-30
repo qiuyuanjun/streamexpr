@@ -18,9 +18,11 @@ OrExpr: AndExpr ( Or AndExpr )*
 
 Or: BARBAR | OR
 
-AndExpr:
+AndExpr: RelationExpr ( And RelationExpr )*
 
 And: AMPAMP | AND
+
+RelationExpr:
 
 UNDERLINE: "_"
 LPARAN: "("

@@ -59,11 +59,11 @@ public class TokenKinds {
     }
 
     public TokenKind getTokenKindByName(String name) {
-        return Objects.requireNonNull(tokenKindNames.get(name), "Can not find TokenKind with name: " + name);
+        return Objects.requireNonNull(tokenKindNames.get(name), () -> "Can not find TokenKind with name: " + name);
     }
 
     public TokenKind getTokenKindByTag(int tag) {
-        return Objects.requireNonNull(tokenKindTags.get(tag), "Can not find TokenKind with tag: " + tag);
+        return Objects.requireNonNull(tokenKindTags.get(tag), () -> "Can not find TokenKind with tag: " + tag);
     }
 
     public TokenKind getKeyword(String name) {

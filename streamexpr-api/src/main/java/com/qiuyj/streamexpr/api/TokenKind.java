@@ -1,5 +1,7 @@
 package com.qiuyj.streamexpr.api;
 
+import com.qiuyj.streamexpr.api.utils.StringUtils;
+
 /**
  * @author qiuyj
  * @since 2023-07-03
@@ -28,6 +30,14 @@ public interface TokenKind {
     }
 
     default boolean equals(TokenKind other) {
-        return this == other || other.getTag() == getTag();
+        if (this == other) {
+            return true;
+        }
+        if (getTag() != TokenKind.TAG_NOT_SUPPORT
+                && other.getTag() != TokenKind.TAG_NOT_SUPPORT) {
+            return other.getTag() == getTag();
+        }
+        return StringUtils.isNotEmpty(getName())
+                && getName().equals(other.getName());
     }
 }

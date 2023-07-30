@@ -2,10 +2,11 @@ package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.api._
-import com.qiuyj.streamexpr.api.ast.{ASTNode, IdentifierASTNode}
+import com.qiuyj.streamexpr.api.ast._
 import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
 import com.qiuyj.streamexpr.utils.ParseUtils
 
+import java.util.Objects
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -43,7 +44,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     }
     while (`match`(streamOpSeparator))
     // 最后不能再有多余的Token，必须是EOF
-    nextThenAccept(TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_EOF)
+    accept(TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_EOF)
     streamExpressionBuilder.build
   }
 
@@ -68,8 +69,8 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       parameters += parseParameter
     }
     while (`match`(parameterSeparator))
-    nextThenAccept(tokenKinds getTokenKindByName ")")
-    new StreamOpASTNode(opName, parameters.toSeq: _*)
+    accept(tokenKinds getTokenKindByName ")")
+    new StreamOpASTNode(opName, parameters.toIndexedSeq: _*)
   }
 
   /*
@@ -80,20 +81,60 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   /*
    * Expr: OrExpr
    */
-  private def parseExpr: ASTNode = {
+  private def parseExpr: ExpressionASTNode = {
     val left: ASTNode = parseOrExpr
     null
   }
 
   /*
    * OrExpr: AndExpr ( Or AndExpr )*
+   * Or: BARBAR | OR
+   * BARBAR: "||"
+   * OR: "or" | "OR"
    */
   private def parseOrExpr: ASTNode = {
-    val left: ASTNode = parseAndExpr
-    null
+    val tokenKinds = TokenKinds.getInstance
+    val first: ASTNode = parseAndExpr
+    var orPart: ArrayBuffer[ExpressionASTNode] = null
+    while (`match`(tokenKinds getTokenKindByName ("||"))
+      || `match`(tokenKinds getTokenKindByName "or")
+      || `match`(tokenKinds getTokenKindByName "OR")) {
+      if (Objects.isNull(orPart)) {
+        orPart = new ArrayBuffer[ExpressionASTNode](4)
+      }
+      orPart += parseAndExpr.asInstanceOf[ExpressionASTNode]
+    }
+    if (orPart.isEmpty)
+      first
+    else
+      new OrExpressionASTNode(AbstractASTNode.makeArray[ExpressionASTNode](classOf[ExpressionASTNode], first.asInstanceOf[ExpressionASTNode], orPart.toArray: _*): _*)
   }
 
+  /*
+   * AndExpr: RelationExpr ( And RelationExpr )*
+   * And: AMPAMP | AND
+   * AMPAMP: "&&"
+   * AND: "and" | "AND"
+   */
   private def parseAndExpr: ASTNode = {
+    val tokenKinds = TokenKinds.getInstance
+    val first: ASTNode = parseRelationExpr
+    var andPart: ArrayBuffer[ExpressionASTNode] = null
+    while (`match`(tokenKinds getTokenKindByName ("&&"))
+      || `match`(tokenKinds getTokenKindByName "and")
+      || `match`(tokenKinds getTokenKindByName "AND")) {
+      if (Objects.isNull(andPart)) {
+        andPart = new ArrayBuffer[ExpressionASTNode](4)
+      }
+      andPart += parseRelationExpr.asInstanceOf[ExpressionASTNode]
+    }
+    if (andPart.isEmpty)
+      first
+    else
+      new AndExpressionASTNode(AbstractASTNode.makeArray[ExpressionASTNode](classOf[ExpressionASTNode], first.asInstanceOf[ExpressionASTNode], andPart.toArray: _*): _*)
+  }
+
+  private def parseRelationExpr: ASTNode = {
     null
   }
 

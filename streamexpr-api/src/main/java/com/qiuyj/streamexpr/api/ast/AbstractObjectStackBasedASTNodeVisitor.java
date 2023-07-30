@@ -18,19 +18,24 @@ public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeV
         pushObject(root);
     }
 
+    /**
+     * 得到根对象
+     * @apiNote 当前方法调用，必须放在最后，等所有其他的对象都出栈了之后再调用
+     * @return 根对象
+     */
     protected Object getRootObject() {
         Object rootObject = popObject();
         if (objectStack.isEmpty()) {
             return rootObject;
         }
-        throw new IllegalStateException("");
+        throw new IllegalStateException("The object obtained in the current call state is not root object");
     }
 
     protected <ParentObjectType, CurrentObjectType, AstType> void executeVisit(
             VisitAction<ParentObjectType, CurrentObjectType, AstType> visitAction,
             AstType astNode) {
-        // 父对象出栈
-        ParentObjectType parentObject = popObject();
+        // 获取父对象（不能把父对象出栈，因为后续递归需要使用）
+        ParentObjectType parentObject = peekObject();
         // 创建当前对象并入栈
         CurrentObjectType currentObject = visitAction.createCurrentObject(astNode);
         boolean needPushAndPopCurrentObject = Objects.nonNull(currentObject);
@@ -43,16 +48,30 @@ public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeV
         visitAction.postVisit(parentObject,
                 needPushAndPopCurrentObject ? popObject() : null,
                 astNode);
-        // 最后将父对象入栈
-        pushObject(parentObject);
     }
 
+    /**
+     * 入栈
+     * @param obj 要入栈的对象
+     */
     private void pushObject(Object obj) {
         objectStack.push(obj);
     }
 
+    /**
+     * 弹出栈顶对象
+     * @return 栈顶对象
+     */
     private <T> T popObject() {
         return (T) objectStack.pop();
+    }
+
+    /**
+     * 获取栈顶对象，但是不出栈
+     * @return 栈顶对象
+     */
+    private <T> T peekObject() {
+        return (T) objectStack.peek();
     }
 
     public static abstract class VisitAction<ParentObjectType, CurrentObjectType, AstType> {
