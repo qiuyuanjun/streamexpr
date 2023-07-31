@@ -1,18 +1,38 @@
 package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.api.TokenKind
+import com.qiuyj.streamexpr.parser.StreamExpressionKeyword._
 
 /**
+ * 关键字
  * @author qiuyj
  * @since 2023-07-06
  */
-class StreamExpressionKeyword(private[this] val keyword: String) extends StreamExpressionTokenKind(TokenKind.TAG_NOT_SUPPORT, keyword) {
+private[parser] class StreamExpressionKeyword(private[this] val keyword: String) extends StreamExpressionTokenKind(TokenKind.TAG_NOT_SUPPORT, keyword) {
+
   override def isKeyword = true
+
+  override def isRelationOperator = this match {
+    case EQ
+         | com.qiuyj.streamexpr.parser.StreamExpressionKeyword.eq
+         | NEQ
+         | com.qiuyj.streamexpr.parser.StreamExpressionKeyword.neq
+         | GT
+         | com.qiuyj.streamexpr.parser.StreamExpressionKeyword.gt
+         | LT
+         | com.qiuyj.streamexpr.parser.StreamExpressionKeyword.lt
+         | GTEQ
+         | com.qiuyj.streamexpr.parser.StreamExpressionKeyword.gteq
+         | LTQE
+         | com.qiuyj.streamexpr.parser.StreamExpressionKeyword.lteq
+      => true
+    case _ => false
+  }
 }
 
-object StreamExpressionKeyword {
+private[parser] object StreamExpressionKeyword {
 
-  def apply(keyword: String) = new StreamExpressionKeyword(keyword)
+  private def apply(keyword: String) = new StreamExpressionKeyword(keyword)
 
   val IN = StreamExpressionKeyword("IN")
   val in = StreamExpressionKeyword("in")

@@ -22,7 +22,9 @@ AndExpr: RelationExpr ( And RelationExpr )*
 
 And: AMPAMP | AND
 
-RelationExpr:
+RelationExpr: AddExpr RelOp AddExpr
+
+RelOp:
 
 UNDERLINE: "_"
 LPARAN: "("

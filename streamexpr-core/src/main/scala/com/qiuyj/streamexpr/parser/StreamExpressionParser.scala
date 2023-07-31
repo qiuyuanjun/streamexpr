@@ -134,7 +134,19 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       new AndExpressionASTNode(AbstractASTNode.makeArray[ExpressionASTNode](classOf[ExpressionASTNode], first.asInstanceOf[ExpressionASTNode], andPart.toArray: _*): _*)
   }
 
+  /*
+   * RelationExpr: AddSubExpr RelOp AddSubExpr
+   */
   private def parseRelationExpr: ASTNode = {
+    val left = parseAddSubExpr
+    // 判断是否是RelOp
+    if (isRelOp)
+      new DefaultOperatorASTNode(left, parseAddSubExpr, null)
+    else
+      left
+  }
+
+  private def parseAddSubExpr: ASTNode = {
     null
   }
 
@@ -148,6 +160,12 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       parseError(s"Unexpected token kind, expect: $kind, but find: ${lexer.getCurrentToken.getKind}")
     }
   }
+
+  /**
+   * 判断当前的token是否是关系运算符
+   * @return 如果是，那么返回<code>true</code>，否则返回<code>false</code>
+   */
+  private def isRelOp: Boolean = lexer.getCurrentToken.getKind.isRelationOperator
 
   private def `match`(kind: TokenKind): Boolean = {
     if (lexer.getCurrentToken.getKind equals kind) {

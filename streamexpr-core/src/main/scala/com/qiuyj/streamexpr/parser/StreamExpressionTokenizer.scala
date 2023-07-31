@@ -34,7 +34,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
   private[this] var kind: TokenKind = _
 
   // 初始化相关TokenKind
-  assert(StreamExpressionKeyword.GT.isKeyword)
+  assert(StreamExpressionKeyword.IN.isKeyword)
   TokenKinds.getInstance.initInternal()
 
   /**
@@ -161,6 +161,15 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         }
         else {
           lexError("Illegal character '&'")
+        }
+      case '!' => // 目前仅支持 != 组合
+        lookahead
+        if (lookaheadIs('=')) {
+          next
+          kind = TokenKinds.getInstance getTokenKindByName "!="
+        }
+        else {
+          lexError("Illegal character '!'")
         }
       case '@' =>
         // 从上下文里面获取参数

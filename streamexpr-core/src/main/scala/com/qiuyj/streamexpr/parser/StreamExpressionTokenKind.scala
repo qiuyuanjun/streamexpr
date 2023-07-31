@@ -15,6 +15,8 @@ class StreamExpressionTokenKind(private[this] val tag: Int, private[this] val na
   override def getName: String = name
 
   override def toString: String = name
+
+  override def isRelationOperator: Boolean = false
 }
 
 object StreamExpressionTokenKind {

@@ -21,6 +21,12 @@ public interface TokenKind {
 
     String getName();
 
+    /**
+     * 判断是否是关系运算符
+     * @return 如果是关系运算符，那么返回{@code true}，否则返回{@code false}
+     */
+    boolean isRelationOperator();
+
     default boolean isNumeric() {
         return false;
     }

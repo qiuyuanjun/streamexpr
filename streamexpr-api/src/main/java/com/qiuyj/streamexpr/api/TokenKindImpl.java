@@ -57,6 +57,7 @@ public enum TokenKindImpl implements TokenKind {
     PLUS("+"),
     BAR("|"),
     EQEQ("=="),
+    NEQ("!="),
     GT(">"),
     GTEQ(">="),
     LT("<"),
@@ -93,4 +94,13 @@ public enum TokenKindImpl implements TokenKind {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean isRelationOperator() {
+        return switch (this) {
+            case EQEQ, NEQ, GT, GTEQ, LT, LTEQ -> true;
+            default -> false;
+        };
+    }
+
 }

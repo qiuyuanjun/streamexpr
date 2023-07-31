@@ -6,7 +6,7 @@ package com.qiuyj.streamexpr.api.ast;
  */
 public class DefaultOperatorASTNode extends AbstractASTNode implements OperatorASTNode {
 
-    public DefaultOperatorASTNode(AbstractASTNode left, AbstractASTNode right, AbstractASTNode operand) {
+    public DefaultOperatorASTNode(ASTNode left, ASTNode right, ASTNode operand) {
         super(left, operand, right);
     }
 
