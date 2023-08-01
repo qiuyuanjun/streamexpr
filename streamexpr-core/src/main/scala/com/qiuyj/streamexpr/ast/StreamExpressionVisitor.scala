@@ -3,7 +3,7 @@ package com.qiuyj.streamexpr.ast
 import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.StreamExpression.{Parameter, StreamOp}
 import com.qiuyj.streamexpr.api.ast.AbstractObjectStackBasedASTNodeVisitor.VisitAction
-import com.qiuyj.streamexpr.api.ast.{ASTNode, AbstractObjectStackBasedASTNodeVisitor, AndExpressionASTNode, IdentifierASTNode, OrExpressionASTNode, StringLiteralASTNode}
+import com.qiuyj.streamexpr.api.ast.{ASTNode, AbstractObjectStackBasedASTNodeVisitor, AndExpressionASTNode, IdentifierASTNode, OperatorASTNode, OrExpressionASTNode, StringLiteralASTNode}
 import org.springframework.expression.spel.standard.SpelExpressionParser
 import org.springframework.expression.{Expression, ParserContext}
 
@@ -45,6 +45,10 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
   }
 
   override def visitAndExpression(andExpressionASTNode: AndExpressionASTNode): Unit = {
+    // todo
+  }
+
+  override def visitOperator(operatorASTNode: OperatorASTNode): Unit = {
     // todo
   }
 

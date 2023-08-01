@@ -12,7 +12,7 @@ private[parser] class StreamExpressionKeyword(private[this] val keyword: String)
 
   override def isKeyword = true
 
-  override def isRelationOperator = this match {
+  override def isRelationOperator: Boolean = this match {
     case EQ
          | com.qiuyj.streamexpr.parser.StreamExpressionKeyword.eq
          | NEQ

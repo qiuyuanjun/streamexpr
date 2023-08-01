@@ -136,17 +136,44 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
 
   /*
    * RelationExpr: AddSubExpr RelOp AddSubExpr
+   * RelOp: EQEQ | NEQ | GT | GTEQ | LT | LTEQ | "EQ" | "eq" | "NEQ" | "neq" | "GTEQ" | "gteq" | "GT" | "gt" | "LT" | "lt" | "LTEQ" | "lteq"
+   * EQEQ: "=="
+   * NEQ: "!="
+   * GT: ">"
+   * GTEQ: ">="
+   * LT: "<"
+   * LTEQ: "<="
    */
   private def parseRelationExpr: ASTNode = {
     val left = parseAddSubExpr
     // 判断是否是RelOp
-    if (isRelOp)
-      new DefaultOperatorASTNode(left, parseAddSubExpr, null)
+    if (isRelOp) {
+      lexer.nextToken
+      new DefaultOperatorASTNode(left,
+        parseAddSubExpr,
+        lexer.getPrevToken.getKind.getName)
+    }
     else
       left
   }
 
+  /*
+   * AddSubExpr: MultiDivExpr ( PLUS | MINUS ) MultiDivExpr
+   * PLUS: "+"
+   * MINUS: "-"
+   */
   private def parseAddSubExpr: ASTNode = {
+    val first = parseMultiDivExpr
+    val tokenKinds = TokenKinds.getInstance
+    if (`match`(tokenKinds getTokenKindByName "+"))
+      new ArithmeticExpressionASTNode(first, parseMultiDivExpr, '+')
+    else if (`match`(tokenKinds getTokenKindByName "-"))
+      new ArithmeticExpressionASTNode(first, parseMultiDivExpr, '-')
+    else
+      first
+  }
+
+  private def parseMultiDivExpr: ASTNode = {
     null
   }
 
@@ -167,6 +194,11 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    */
   private def isRelOp: Boolean = lexer.getCurrentToken.getKind.isRelationOperator
 
+  /**
+   * 判断传入的TokenKind是否和当前解析的TokenKind一致，如果一致，那么执行nextToken操作并返回true，否则直接返回false
+   * @param kind 要判断的TokenKind实例
+   * @return 一致就返回true，否则就返回false
+   */
   private def `match`(kind: TokenKind): Boolean = {
     if (lexer.getCurrentToken.getKind equals kind) {
       lexer.nextToken

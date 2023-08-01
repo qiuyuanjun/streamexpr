@@ -30,4 +30,10 @@ public interface ASTNodeVisitor {
      * @param andExpressionASTNode or表达式的抽象语法树节点
      */
     void visitAndExpression(AndExpressionASTNode andExpressionASTNode);
+
+    /**
+     * 访问操作符抽象语法树节点
+     * @param operatorASTNode 操作符抽象语法树节点
+     */
+    void visitOperator(OperatorASTNode operatorASTNode);
 }

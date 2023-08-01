@@ -22,10 +22,20 @@ AndExpr: RelationExpr ( And RelationExpr )*
 
 And: AMPAMP | AND
 
-RelationExpr: AddExpr RelOp AddExpr
+RelationExpr: AddSubExpr RelOp AddSubExpr
 
-RelOp:
+RelOp: EQEQ | NEQ | GT | GTEQ | LT | LTEQ | "EQ" | "eq" | "NEQ" | "neq" | "GTEQ" | "gteq" | "GT" | "gt" | "LT" | "lt" | "LTEQ" | "lteq"
 
+AddSubExpr: MultiDivExpr ( PLUS | MINUS ) MultiDivExpr
+
+PLUS: "+"
+MINUS: "-"
+EQEQ: "=="
+NEQ: "!="
+GT: ">"
+GTEQ: ">="
+LT: "<"
+LTEQ: "<="
 UNDERLINE: "_"
 LPARAN: "("
 RPARAN: ")"

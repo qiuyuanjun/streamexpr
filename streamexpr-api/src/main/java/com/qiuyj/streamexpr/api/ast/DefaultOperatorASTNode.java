@@ -6,26 +6,30 @@ package com.qiuyj.streamexpr.api.ast;
  */
 public class DefaultOperatorASTNode extends AbstractASTNode implements OperatorASTNode {
 
-    public DefaultOperatorASTNode(ASTNode left, ASTNode right, ASTNode operand) {
-        super(left, operand, right);
+    private final Operator operator;
+
+    public DefaultOperatorASTNode(ASTNode left, ASTNode right, String operator) {
+        super(left, right);
+        this.operator = Operator.getByName(operator);
     }
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
+        visitor.visitOperator(this);
     }
 
     @Override
-    public ASTNode getLeft() {
+    public ASTNode getLeftOperand() {
         return fastGetChildASTNode(0);
     }
 
     @Override
-    public ASTNode getRight() {
-        return fastGetChildASTNode(2);
+    public ASTNode getRightOperand() {
+        return fastGetChildASTNode(1);
     }
 
     @Override
-    public ASTNode getOperand() {
-        return fastGetChildASTNode(1);
+    public Operator getOperator() {
+        return operator;
     }
 }
