@@ -2,11 +2,11 @@ package com.qiuyj.streamexpr.parser
 
 import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.api._
+import com.qiuyj.streamexpr.api.ast.OperatorASTNode.Operator
 import com.qiuyj.streamexpr.api.ast._
 import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
 import com.qiuyj.streamexpr.utils.ParseUtils
 
-import java.util.Objects
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -94,20 +94,13 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    */
   private def parseOrExpr: ASTNode = {
     val tokenKinds = TokenKinds.getInstance
-    val first: ASTNode = parseAndExpr
-    var orPart: ArrayBuffer[ExpressionASTNode] = null
+    var left = parseAndExpr
     while (`match`(tokenKinds getTokenKindByName ("||"))
       || `match`(tokenKinds getTokenKindByName "or")
       || `match`(tokenKinds getTokenKindByName "OR")) {
-      if (Objects.isNull(orPart)) {
-        orPart = new ArrayBuffer[ExpressionASTNode](4)
-      }
-      orPart += parseAndExpr.asInstanceOf[ExpressionASTNode]
+      left = new OrExpressionASTNode(left, parseAndExpr)
     }
-    if (orPart.isEmpty)
-      first
-    else
-      new OrExpressionASTNode(AbstractASTNode.makeArray[ExpressionASTNode](classOf[ExpressionASTNode], first.asInstanceOf[ExpressionASTNode], orPart.toArray: _*): _*)
+    left
   }
 
   /*
@@ -118,20 +111,13 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    */
   private def parseAndExpr: ASTNode = {
     val tokenKinds = TokenKinds.getInstance
-    val first: ASTNode = parseRelationExpr
-    var andPart: ArrayBuffer[ExpressionASTNode] = null
+    var left = parseRelationExpr
     while (`match`(tokenKinds getTokenKindByName ("&&"))
       || `match`(tokenKinds getTokenKindByName "and")
       || `match`(tokenKinds getTokenKindByName "AND")) {
-      if (Objects.isNull(andPart)) {
-        andPart = new ArrayBuffer[ExpressionASTNode](4)
-      }
-      andPart += parseRelationExpr.asInstanceOf[ExpressionASTNode]
+      left = new AndExpressionASTNode(left, parseRelationExpr)
     }
-    if (andPart.isEmpty)
-      first
-    else
-      new AndExpressionASTNode(AbstractASTNode.makeArray[ExpressionASTNode](classOf[ExpressionASTNode], first.asInstanceOf[ExpressionASTNode], andPart.toArray: _*): _*)
+    left
   }
 
   /*
@@ -148,10 +134,25 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     val left = parseAddSubExpr
     // 判断是否是RelOp
     if (isRelOp) {
+      val op = Operator.getByName(lexer.getCurrentToken.getKind.getName)
       lexer.nextToken
-      new DefaultOperatorASTNode(left,
-        parseAddSubExpr,
-        lexer.getPrevToken.getKind.getName)
+      op match {
+        case Operator.EQ =>
+          new EqExpressionASTNode(left, parseAddSubExpr)
+        case Operator.NEQ =>
+          new NeqExpressionASTNode(left, parseAddSubExpr)
+        case Operator.LT =>
+          new LtExpressionASTNode(left, parseAddSubExpr)
+        case Operator.GT =>
+          new GtExpressionASTNode(left, parseAddSubExpr)
+        case Operator.LTEQ =>
+          new LteqExpressionASTNode(left, parseAddSubExpr)
+        case Operator.GTEQ =>
+          new GteqExpressionASTNode(left, parseAddSubExpr)
+        case _ =>
+          parseError(s"Unsupported relational operator: $op")
+          throw new IllegalStateException("Never reach here!")
+      }
     }
     else
       left
@@ -163,14 +164,14 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    * MINUS: "-"
    */
   private def parseAddSubExpr: ASTNode = {
-    val first = parseMultiDivExpr
+    val left = parseMultiDivExpr
     val tokenKinds = TokenKinds.getInstance
     if (`match`(tokenKinds getTokenKindByName "+"))
-      new ArithmeticExpressionASTNode(first, parseMultiDivExpr, '+')
+      new PlusExpressionASTNode(left, parseMultiDivExpr)
     else if (`match`(tokenKinds getTokenKindByName "-"))
-      new ArithmeticExpressionASTNode(first, parseMultiDivExpr, '-')
+      new MinusExpressionASTNode(left, parseMultiDivExpr)
     else
-      first
+      left
   }
 
   private def parseMultiDivExpr: ASTNode = {

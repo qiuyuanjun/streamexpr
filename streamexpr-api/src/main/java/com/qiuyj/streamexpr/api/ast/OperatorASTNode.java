@@ -27,7 +27,7 @@ public interface OperatorASTNode extends ExpressionASTNode {
 
     enum Operator {
 
-        EQ, NEQ, GT, GTEQ, LT, LTEQ;
+        EQ, NEQ, GT, GTEQ, LT, LTEQ, OR, AND, PLUS, MINUS;
 
         public static Operator getByName(String name) {
             return null;

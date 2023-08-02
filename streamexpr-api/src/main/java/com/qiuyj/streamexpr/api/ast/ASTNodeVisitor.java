@@ -32,8 +32,14 @@ public interface ASTNodeVisitor {
     void visitAndExpression(AndExpressionASTNode andExpressionASTNode);
 
     /**
-     * 访问操作符抽象语法树节点
-     * @param operatorASTNode 操作符抽象语法树节点
+     * 访问加法表达式抽象语法树节点
+     * @param plusExpressionASTNode 加法表达式抽象语法树节点
      */
-    void visitOperator(OperatorASTNode operatorASTNode);
+    void visitPlusExpression(PlusExpressionASTNode plusExpressionASTNode);
+
+    /**
+     * 访问减法表达式抽象语法树节点
+     * @param minusExpressionASTNode 减法表达式抽象语法树节点
+     */
+    void visitMinusExpression(MinusExpressionASTNode minusExpressionASTNode);
 }

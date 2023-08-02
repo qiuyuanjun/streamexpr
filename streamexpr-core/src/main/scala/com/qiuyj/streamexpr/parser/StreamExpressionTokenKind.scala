@@ -22,9 +22,15 @@ class StreamExpressionTokenKind(private[this] val tag: Int, private[this] val na
 object StreamExpressionTokenKind {
 
   val TAG_SPEL = 101
+  val TAG_CTX_ATTR = 102
 
   val SPEL = new StreamExpressionTokenKind(TAG_SPEL, null) {
 
     override def toString: String = "SPEL"
+  }
+
+  val CTX_ATTR = new StreamExpressionTokenKind(TAG_CTX_ATTR, null) {
+
+    override def toString: String = "CTX_ATTR"
   }
 }

@@ -44,7 +44,7 @@ public abstract class AbstractASTNode implements ASTNode {
 
     protected AbstractASTNode() {
         // 没有子节点
-        children = EMPTY;
+        this(EMPTY);
     }
 
     @Override

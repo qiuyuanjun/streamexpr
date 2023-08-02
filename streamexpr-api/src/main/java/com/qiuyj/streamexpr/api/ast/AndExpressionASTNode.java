@@ -5,9 +5,14 @@ package com.qiuyj.streamexpr.api.ast;
  * @author qiuyj
  * @since 2023-07-30
  */
-public class AndExpressionASTNode extends LogicExpressionASTNode {
+public class AndExpressionASTNode extends DefaultOperatorASTNode {
 
-    public AndExpressionASTNode(ExpressionASTNode... logicPart) {
-        super(LogicOperator.AND, logicPart);
+    public AndExpressionASTNode(ASTNode left, ASTNode right) {
+        super(left, right, Operator.AND);
+    }
+
+    @Override
+    public <T extends ASTNodeVisitor> void visit(T visitor) {
+        visitor.visitAndExpression(this);
     }
 }

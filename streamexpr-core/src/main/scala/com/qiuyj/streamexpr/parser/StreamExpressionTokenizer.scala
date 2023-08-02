@@ -134,43 +134,51 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
       case ',' =>
         kind = TokenKinds.getInstance getTokenKindByName ","
       case '-' =>
-        kind = lookaheadTokenIfMatch('-', '-', '=')
+        kind = lookaheadTokenIfMatch(true,
+          '-',
+          '-',
+          '=')
       case '+' =>
-        kind = lookaheadTokenIfMatch('+', '+', '=')
+        kind = lookaheadTokenIfMatch(true,
+          '+',
+          '+',
+          '=')
       case '|' =>
-        kind = lookaheadTokenIfMatch('|', '|')
+        kind = lookaheadTokenIfMatch(true,
+          '|',
+          '|')
       case '*' =>
-        kind = lookaheadTokenIfMatch('*', '=')
+        kind = lookaheadTokenIfMatch(true,
+          '*',
+          '=')
       case '/' =>
-        kind = lookaheadTokenIfMatch('/', '=')
+        kind = lookaheadTokenIfMatch(true,
+          '/',
+          '=')
       case '>' =>
-        kind = lookaheadTokenIfMatch('>', '=')
+        kind = lookaheadTokenIfMatch(true,
+          '>',
+          '=')
       case '<' =>
-        kind = lookaheadTokenIfMatch('<', '=')
+        kind = lookaheadTokenIfMatch(true,
+          '<',
+          '=')
       case '=' =>
-        kind = lookaheadTokenIfMatch('=', '=')
+        kind = lookaheadTokenIfMatch(true,
+          '=',
+          '=')
       case '[' =>
         kind = TokenKinds.getInstance getTokenKindByName "["
       case ']' =>
         kind = TokenKinds.getInstance getTokenKindByName "]"
       case '&' => // 目前只支持&&，不支持单个&
-        lookahead
-        if (lookaheadIs('&')) {
-          next
-          kind = TokenKinds.getInstance getTokenKindByName "&&"
-        }
-        else {
-          lexError("Illegal character '&'")
-        }
+        kind = lookaheadTokenIfMatch(false,
+          '&',
+          '&')
       case '!' => // 目前仅支持 != 组合
-        lookahead
-        if (lookaheadIs('=')) {
-          next
-          kind = TokenKinds.getInstance getTokenKindByName "!="
-        }
-        else {
-          lexError("Illegal character '!'")
-        }
+        kind = lookaheadTokenIfMatch(false,
+          '!',
+          '=')
       case '@' =>
         // 从上下文里面获取参数
         kind = TokenKinds.getInstance getTokenKindByName "@"
@@ -188,11 +196,12 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
 
   /**
    * 判断当前字符的下一个字符是否是给定的字符，如果是，那么创建这两个字符组成的TokenKind，否则值创建当前字符组成的TokenKind
+   * @param fallbackCurrentIfNotMatch 如果下一个预读的字符都没有匹配上，是否回退到当前字符对应的TokenKind
    * @param currentCharacter 当前字符
    * @param lookaheadCharacters 下一个字符
    * @return TokenKind
    */
-  private def lookaheadTokenIfMatch(currentCharacter: Char, lookaheadCharacters: Char*): TokenKind = {
+  private def lookaheadTokenIfMatch(fallbackCurrentIfNotMatch: Boolean, currentCharacter: Char, lookaheadCharacters: Char*): TokenKind = {
     lookahead
     val iter = lookaheadCharacters.iterator
     val tokenKinds = TokenKinds.getInstance
@@ -202,6 +211,9 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         next
         return tokenKinds getTokenKindByName Array.apply(currentCharacter, nextChar).mkString
       }
+    }
+    if (!fallbackCurrentIfNotMatch) {
+      lexError(s"Illegal character '$currentCharacter'")
     }
     tokenKinds getTokenKindByName String.valueOf(currentCharacter)
   }

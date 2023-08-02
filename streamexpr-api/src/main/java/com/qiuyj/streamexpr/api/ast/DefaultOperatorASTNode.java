@@ -4,7 +4,7 @@ package com.qiuyj.streamexpr.api.ast;
  * @author qiuyj
  * @since 2023-07-23
  */
-public class DefaultOperatorASTNode extends AbstractASTNode implements OperatorASTNode {
+public abstract class DefaultOperatorASTNode extends AbstractASTNode implements OperatorASTNode {
 
     private final Operator operator;
 
@@ -13,9 +13,9 @@ public class DefaultOperatorASTNode extends AbstractASTNode implements OperatorA
         this.operator = Operator.getByName(operator);
     }
 
-    @Override
-    public <T extends ASTNodeVisitor> void visit(T visitor) {
-        visitor.visitOperator(this);
+    public DefaultOperatorASTNode(ASTNode left, ASTNode right, Operator operator) {
+        super(left, right);
+        this.operator = operator;
     }
 
     @Override
