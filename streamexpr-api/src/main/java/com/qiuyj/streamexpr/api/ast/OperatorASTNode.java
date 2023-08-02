@@ -27,7 +27,46 @@ public interface OperatorASTNode extends ExpressionASTNode {
 
     enum Operator {
 
-        EQ, NEQ, GT, GTEQ, LT, LTEQ, OR, AND, PLUS, MINUS;
+        EQ {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+                return new EqExpressionASTNode(left, right);
+            }
+        },
+        NEQ {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+                return new NeqExpressionASTNode(left, right);
+            }
+        },
+        GT {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+                return new GtExpressionASTNode(left, right);
+            }
+        },
+        GTEQ {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+                return new GteqExpressionASTNode(left, right);
+            }
+        },
+        LT {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+                return new LtExpressionASTNode(left, right);
+            }
+        },
+        LTEQ {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+                return new LteqExpressionASTNode(left, right);
+            }
+        }, OR, AND, PLUS, MINUS;
+
+        public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+            return null;
+        }
 
         public static Operator getByName(String name) {
             return null;

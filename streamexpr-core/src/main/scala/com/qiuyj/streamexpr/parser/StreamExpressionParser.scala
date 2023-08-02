@@ -134,23 +134,11 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     val left = parseAddSubExpr
     // 判断是否是RelOp
     if (isRelOp) {
-      val op = Operator.getByName(lexer.getCurrentToken.getKind.getName)
       lexer.nextToken
-      op match {
-        case Operator.EQ =>
-          new EqExpressionASTNode(left, parseAddSubExpr)
-        case Operator.NEQ =>
-          new NeqExpressionASTNode(left, parseAddSubExpr)
-        case Operator.LT =>
-          new LtExpressionASTNode(left, parseAddSubExpr)
-        case Operator.GT =>
-          new GtExpressionASTNode(left, parseAddSubExpr)
-        case Operator.LTEQ =>
-          new LteqExpressionASTNode(left, parseAddSubExpr)
-        case Operator.GTEQ =>
-          new GteqExpressionASTNode(left, parseAddSubExpr)
+      Operator.getByName(lexer.getPrevToken.getKind.getName) match {
+        case op: Operator => op.createOperatorASTNode(left, parseAddSubExpr)
         case _ =>
-          parseError(s"Unsupported relational operator: $op")
+          parseError("Unsupported relational operator")
           throw new IllegalStateException("Never reach here!")
       }
     }
