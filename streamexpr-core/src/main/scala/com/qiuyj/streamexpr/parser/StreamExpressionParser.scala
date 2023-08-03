@@ -162,7 +162,22 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       left
   }
 
+  /*
+   * MultiDivExpr: PrimaryExpr ( MULTI | DIV ) PrimaryExpr
+   * MULTI: "*"
+   * DIV: "/"
+   */
   private def parseMultiDivExpr: ASTNode = {
+    val left = parsePrimaryExpr
+    if (`match`("*"))
+      new MultiExpressionASTNode(left, parsePrimaryExpr)
+    else if (`match`("/"))
+      new DivExpressionASTNode(left, parsePrimaryExpr)
+    else
+      left
+  }
+
+  private def parsePrimaryExpr: ASTNode = {
     null
   }
 
@@ -183,6 +198,8 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    */
   private def isRelOp: Boolean = lexer.getCurrentToken.getKind.isRelationOperator
 
+  private def `match`(kindName: String): Boolean = `match`(TokenKinds.getInstance getTokenKindByName kindName)
+
   /**
    * 判断传入的TokenKind是否和当前解析的TokenKind一致，如果一致，那么执行nextToken操作并返回true，否则直接返回false
    * @param kind 要判断的TokenKind实例
@@ -197,9 +214,8 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       false
   }
 
-  private def lookaheadMatch(kind: TokenKind): Boolean = {
+  private def lookaheadMatch(kind: TokenKind): Boolean =
     lookaheadToken.getKind equals kind
-  }
 
   private def parseError(errorMessage: String): Unit =
     throw new ParserException(errorMessage)

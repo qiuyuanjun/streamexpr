@@ -62,7 +62,7 @@ public interface OperatorASTNode extends ExpressionASTNode {
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
                 return new LteqExpressionASTNode(left, right);
             }
-        }, OR, AND, PLUS, MINUS;
+        }, OR, AND, PLUS, MINUS, MULTI, DIV;
 
         public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
             return null;

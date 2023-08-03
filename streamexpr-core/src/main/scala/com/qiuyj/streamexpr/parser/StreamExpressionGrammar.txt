@@ -28,10 +28,12 @@ RelOp: EQEQ | NEQ | GT | GTEQ | LT | LTEQ | "EQ" | "eq" | "NEQ" | "neq" | "GTEQ"
 
 AddSubExpr: MultiDivExpr ( PLUS | MINUS ) MultiDivExpr
 
-MultiDivExpr: ( ( LPARAN Expr RPARAN )
-    |
-    | ) ( MULTI | DIV )
+MultiDivExpr: PrimaryExpr ( MULTI | DIV ) PrimaryExpr
 
+Primary
+
+MULTI: "*"
+DIV: "/"
 PLUS: "+"
 MINUS: "-"
 EQEQ: "=="
