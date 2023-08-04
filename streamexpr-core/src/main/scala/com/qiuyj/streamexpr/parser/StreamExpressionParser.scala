@@ -178,12 +178,23 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   private def parsePrimaryExpr: ASTNode = {
-    null
+    var primaryExpr: ASTNode = null
+    if (`match`("(")) {
+      primaryExpr = parseExpr
+      accept(")")
+    }
+    primaryExpr
   }
 
   private def nextThenAccept(kind: TokenKind): Unit = {
     lexer.nextToken
     accept(kind)
+  }
+
+  private def accept(kindName: String): Unit = {
+    if (!`match`(kindName)) {
+      parseError(s"Unexpected token kind, expect: $kindName, but find: ${lexer.getCurrentToken.getKind}")
+    }
   }
 
   private def accept(kind: TokenKind): Unit = {

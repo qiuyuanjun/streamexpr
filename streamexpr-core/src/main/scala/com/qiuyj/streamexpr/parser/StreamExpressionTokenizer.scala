@@ -22,7 +22,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
   private[this] var prevCharacter: Char = _
 
   /**
-   * 预读的字符，如果该字段有值，那么调用next方法将直接返回该字段值，并将该字段值赋值0
+   * 存储预读的字符
    */
   private[this] var lookaheadCharacter: Char = _
 
@@ -44,13 +44,8 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     if (character != 0) {
       prevCharacter = character
     }
-    if (lookaheadCharacter != 0) {
-      character = lookaheadCharacter
-      lookaheadCharacter = 0
-    }
-    else {
-      character = if (source.hasRemaining) source.nextChar else 0
-    }
+    lookaheadCharacter = 0
+    character = if (source.hasRemaining) source.nextChar else 0
     character
   }
 
@@ -94,15 +89,16 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     if (lookaheadCharacter != 0) {
       throw new IllegalStateException("After calling the 'lookahead' method, it is necessary to call the 'next' method in a timely manner")
     }
-    if (source.hasRemaining) {
-      lookaheadCharacter = source.nextChar
+    if (source.hasNext) {
+      // 仅仅是预读一个字符，并不移动位置指针
+      lookaheadCharacter = source.getNextChar
     }
     lookaheadCharacter
   }
 
   def readToken: Token = {
     stringContent.setLength(0)
-    val startPos = skipWhitespaceThenNext
+    val startPos = skipWhitespace
     var numericInfo: NumericInfo = null
     character match {
       case 0 => kind = TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_EOF
@@ -403,9 +399,9 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
   }
 
   /**
-   * 跳过空白字符，并读取第一个非空白字符，并返回对应的位置
+   * 跳过所有的空白字符，并返回首个非空白字符的位置
    */
-  private def skipWhitespaceThenNext: Int = {
+  private def skipWhitespace: Int = {
     while (Character.isWhitespace(next)) {}
     source.currentPos - 1
   }

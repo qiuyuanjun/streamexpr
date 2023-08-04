@@ -9,6 +9,6 @@ import com.qiuyj.streamexpr.StreamExpression;
 public class StreamExpressionTest {
 
     public static void main(String[] args) {
-        StreamExpression.parse("filter(#{PAY_ACCOUNT EQ '12384571'} || 100)");
+        StreamExpression.parse("filter   ( #{PAY_ACCOUNT EQ '12384571'} || 100)");
     }
 }

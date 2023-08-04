@@ -9,7 +9,7 @@ import java.io.InputStream
 trait CharStream extends InputStream {
 
   /**
-   * 返回下一个字符，该方法会将存储字符位置的变量加一
+   * 返回当前位置的字符，并将位置指针往后移一位
    * @note 该方法不会控制边界，需要调用方自行控制边界
    * @return 下一个字符
    */
@@ -23,8 +23,15 @@ trait CharStream extends InputStream {
    */
   def getChar(n: Int): Char
 
+  def getCurrentChar: Char = getChar(0)
+
   def getPrevChar: Char = getChar(-1)
 
+  /**
+   * 得到当前位置的下一个位置对应的字符，该方法不会改变存储当前字符位置的变量
+   * @return 下一个位置对应的字符
+   * @note 该方法不会控制边界，需要调用方自行控制边界
+   */
   def getNextChar: Char = getChar(1)
 
   def currentPos: Int
