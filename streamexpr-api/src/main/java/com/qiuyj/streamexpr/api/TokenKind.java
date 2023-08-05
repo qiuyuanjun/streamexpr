@@ -35,6 +35,10 @@ public interface TokenKind {
         return false;
     }
 
+    default boolean isNamed() {
+        return false;
+    }
+
     default boolean equals(TokenKind other) {
         if (this == other) {
             return true;

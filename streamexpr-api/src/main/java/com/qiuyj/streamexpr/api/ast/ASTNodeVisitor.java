@@ -42,4 +42,16 @@ public interface ASTNodeVisitor {
      * @param minusExpressionASTNode 减法表达式抽象语法树节点
      */
     void visitMinusExpression(MinusExpressionASTNode minusExpressionASTNode);
+
+    /**
+     * 访问三元表达式抽象语法树节点
+     * @param conditionalExpressionASTNode 三元表达式抽象语法树节点
+     */
+    void visitConditionalExpression(ConditionalExpressionASTNode conditionalExpressionASTNode);
+
+    /**
+     * 访问数组表达式抽象语法树节点
+     * @param arrayExpression 数组表达式抽象语法树节点
+     */
+    void visitArrayExpression(ArrayExpression arrayExpression);
 }

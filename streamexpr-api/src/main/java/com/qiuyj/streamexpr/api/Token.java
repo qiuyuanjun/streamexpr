@@ -39,4 +39,27 @@ public class Token {
     public TokenKind getKind() {
         return kind;
     }
+
+    /**
+     * 得到当前Token的实际的值
+     * @return 实际的值
+     */
+    public Object getTokenValue() {
+        return sourceString;
+    }
+
+    public static class NamedToken extends Token {
+
+        private final String name;
+
+        public NamedToken(String name, String sourceString, int startPos, TokenKind kind) {
+            super(sourceString, startPos, kind);
+            this.name = name;
+        }
+
+        @Override
+        public Object getTokenValue() {
+            return name;
+        }
+    }
 }

@@ -53,7 +53,15 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
   }
 
   override def visitMinusExpression(minusExpressionASTNode: MinusExpressionASTNode): Unit = {
+    // todo
+  }
 
+  override def visitConditionalExpression(conditionalExpressionASTNode: ConditionalExpressionASTNode): Unit = {
+    // todo
+  }
+
+  override def visitArrayExpression(arrayExpression: ArrayExpression): Unit = {
+    // todo
   }
 
   def visitStreamExpression(astNode: StreamExpressionASTNode): Unit = {
@@ -79,7 +87,7 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
       }
 
       override def postVisit(parentObject: StreamExpression, currentObject: StreamOp, astNode: StreamOpASTNode): Unit = {
-        parentObject.addStreamOp(currentObject)
+        parentObject.internalAddStreamOp(currentObject)
       }
     }, astNode)
   }
@@ -98,6 +106,10 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
         parentObject.internalSetValue(currentObject)
       }
     }, astNode)
+  }
+
+  def visitContextAttribute(astNode: ContextAttributeASTNode): Unit = {
+    // todo
   }
 
   private def visit(astNode: ASTNode): Unit = {

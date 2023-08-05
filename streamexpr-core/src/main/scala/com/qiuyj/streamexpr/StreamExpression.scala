@@ -13,12 +13,36 @@ import scala.collection.mutable.ArrayBuffer
  */
 class StreamExpression extends Expression {
 
-  override def getValue: Any = {
+  /**
+   * 中间操作，0或者n个
+   */
+  private[this] var intermediateOps: ArrayBuffer[StreamOp] = _
+
+  /**
+   * 终止操作，必须有值
+   */
+  private[this] var terminateOp: StreamOp = _
+
+  override def evaluate: Any = {
     null
   }
 
-  def addStreamOp(streamOp: StreamOp): Unit = {
-
+  /**
+   * 增加中间操作或者是终止操作
+   * @param streamOp 操作
+   */
+  def internalAddStreamOp(streamOp: StreamOp): Unit = {
+    if (Objects.isNull(terminateOp)) {
+      terminateOp = streamOp
+    }
+    else {
+      if (Objects.isNull(intermediateOps)) {
+        // 正常情况下，中间操作不会超过4个
+        intermediateOps = new ArrayBuffer[StreamOp](4)
+      }
+      intermediateOps += terminateOp
+      terminateOp = streamOp
+    }
   }
 
 }

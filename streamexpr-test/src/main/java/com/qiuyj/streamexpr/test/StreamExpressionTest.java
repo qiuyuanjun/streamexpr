@@ -9,6 +9,6 @@ import com.qiuyj.streamexpr.StreamExpression;
 public class StreamExpressionTest {
 
     public static void main(String[] args) {
-        StreamExpression.parse("filter   ( #{PAY_ACCOUNT EQ '12384571'} || 100)");
+        StreamExpression.parse("filter   ( @_CTX_PARAM_1== #{CONSTANT_FIVE_00} || #{ T(Function5).hasRetry() } )|filter([ @CTX_PARAM_1, @CTX_PARAM_2 ])|toArray(#{ collectFunction() })");
     }
 }

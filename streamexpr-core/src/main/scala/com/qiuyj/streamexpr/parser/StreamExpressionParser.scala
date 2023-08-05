@@ -4,9 +4,12 @@ import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.api._
 import com.qiuyj.streamexpr.api.ast.OperatorASTNode.Operator
 import com.qiuyj.streamexpr.api.ast._
-import com.qiuyj.streamexpr.ast.{StreamExpressionASTNode, StreamExpressionVisitor, StreamOpASTNode}
+import com.qiuyj.streamexpr.api.utils.ArrayUtils
+import com.qiuyj.streamexpr.ast._
 import com.qiuyj.streamexpr.utils.ParseUtils
 
+import java.util
+import java.util.Objects
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -16,9 +19,31 @@ import scala.collection.mutable.ArrayBuffer
 class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[StreamExpression] {
 
   /**
-   * 用于存储预读的token
+   * 用于存储抽象语法树中间构造节点
    */
-  private[this] var lookaheadToken: Token = _
+  private[this] var constructNodes: util.Deque[ASTNode] = _
+
+  private def initConstructNodes(): Unit = {
+    if (Objects.isNull(constructNodes)) {
+      constructNodes = new util.ArrayDeque[ASTNode]
+    }
+  }
+
+  // --------------- Stack begin
+  private def pushConstructNode(astNode: ASTNode): Unit = {
+    initConstructNodes()
+    constructNodes.push(astNode)
+  }
+
+  private def popConstructNode: ASTNode = constructNodes.pop
+  // --------------- Stack end
+
+  // --------------- Queue begin
+  private def addConstructNode(astNode: ASTNode): Unit = {
+    initConstructNodes()
+    constructNodes.add(astNode)
+  }
+  // --------------- Queue end
 
   override def parseExpression: StreamExpression = {
     val visitor = new StreamExpressionVisitor
@@ -81,9 +106,16 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   /*
    * Expr: OrExpr
    */
-  private def parseExpr: ExpressionASTNode = {
-    val left: ASTNode = parseOrExpr
-    null
+  private def parseExpr: ASTNode = {
+    var expr = parseOrExpr
+    if (`match`("?")) {
+      // 3元运算符
+      val trueResult = parseExpr
+      accept(":")
+      val falseResult = parseExpr
+      expr = new ConditionalExpressionASTNode(expr, trueResult, falseResult)
+    }
+    expr
   }
 
   /*
@@ -95,7 +127,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   private def parseOrExpr: ASTNode = {
     val tokenKinds = TokenKinds.getInstance
     var left = parseAndExpr
-    while (`match`(tokenKinds getTokenKindByName ("||"))
+    while (`match`(tokenKinds getTokenKindByName "||")
       || `match`(tokenKinds getTokenKindByName "or")
       || `match`(tokenKinds getTokenKindByName "OR")) {
       left = new OrExpressionASTNode(left, parseAndExpr)
@@ -112,7 +144,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   private def parseAndExpr: ASTNode = {
     val tokenKinds = TokenKinds.getInstance
     var left = parseRelationExpr
-    while (`match`(tokenKinds getTokenKindByName ("&&"))
+    while (`match`(tokenKinds getTokenKindByName "&&")
       || `match`(tokenKinds getTokenKindByName "and")
       || `match`(tokenKinds getTokenKindByName "AND")) {
       left = new AndExpressionASTNode(left, parseRelationExpr)
@@ -177,18 +209,83 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       left
   }
 
+  /*
+   * PrimaryExpr: ParanExpr
+   *   | ContextAttribute
+   *   | SpelExpr
+   *   | PrefixExpr
+   *   | UnaryExpr
+   *   | Identifier
+   *   | Numeric
+   *   | ArrayExpr
+   */
   private def parsePrimaryExpr: ASTNode = {
-    var primaryExpr: ASTNode = null
-    if (`match`("(")) {
-      primaryExpr = parseExpr
-      accept(")")
+    if (maybeParanExpr || maybeContextAttribute || maybeSpelExpression)
+      popConstructNode
+    else if (maybeArrayExpr) {
+      if (constructNodes.isEmpty)
+        ArrayExpression.empty
+      else {
+        val array = ArrayUtils.transferToArray(classOf[ASTNode], constructNodes)
+        new ArrayExpression(array)
+      }
     }
-    primaryExpr
+    else
+      null
   }
 
-  private def nextThenAccept(kind: TokenKind): Unit = {
-    lexer.nextToken
-    accept(kind)
+  /*
+   * ArrayExpr: LBRACKET RBRACKET
+   *   | LBRACKET Expr ( COMMA Expr )* RBRACKET
+   * LBRACKET: "["
+   * RBRACKET: "]"
+   */
+  private def maybeArrayExpr: Boolean = {
+    if (`match`("[")) {
+      if (!`match`("]")) {
+        do {
+          addConstructNode(parseExpr)
+        }
+        while (`match`(","))
+        accept("]")
+      }
+      true
+    }
+    else
+      false
+  }
+
+  private def maybeSpelExpression: Boolean = {
+    if (`match`(StreamExpressionTokenKind.SPEL)) {
+      pushConstructNode(new SPELASTNode(lexer.getPrevToken.getSourceString))
+      true
+    }
+    else
+      false
+  }
+
+  private def maybeContextAttribute: Boolean = {
+    if (`match`(StreamExpressionTokenKind.CTX_ATTR)) {
+      pushConstructNode(new ContextAttributeASTNode(lexer.getPrevToken.getTokenValue.asInstanceOf[String]))
+      true
+    }
+    else
+      false
+  }
+
+  /**
+   * ParanExpr: LPARAN Expr RPARAN
+   * 判断是否可能是括号表达式（括号优先级最高）
+   * @return 如果是，那么返回true，否则返回false
+   */
+  private def maybeParanExpr: Boolean = {
+    if (`match`("(")) {
+      pushConstructNode(parseExpr)
+      accept(")")
+      true
+    }
+    else
+      false
   }
 
   private def accept(kindName: String): Unit = {
@@ -224,9 +321,6 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     else
       false
   }
-
-  private def lookaheadMatch(kind: TokenKind): Boolean =
-    lookaheadToken.getKind equals kind
 
   private def parseError(errorMessage: String): Unit =
     throw new ParserException(errorMessage)

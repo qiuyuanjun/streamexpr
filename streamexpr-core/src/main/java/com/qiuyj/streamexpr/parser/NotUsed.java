@@ -1,4 +1,4 @@
-package com.qiuyj.streamexpr;
+package com.qiuyj.streamexpr.parser;
 
 /**
  * @author qiuyj

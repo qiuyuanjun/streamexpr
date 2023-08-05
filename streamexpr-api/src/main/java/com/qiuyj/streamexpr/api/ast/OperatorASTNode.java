@@ -1,5 +1,12 @@
 package com.qiuyj.streamexpr.api.ast;
 
+import com.qiuyj.streamexpr.api.utils.ArrayUtils;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * 代表一个操作符的抽象语法树节点
  * @author qiuyj
@@ -27,49 +34,78 @@ public interface OperatorASTNode extends ExpressionASTNode {
 
     enum Operator {
 
-        EQ {
+        EQ("==", "eq", "EQ") {
             @Override
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
                 return new EqExpressionASTNode(left, right);
             }
         },
-        NEQ {
+        NEQ("!=", "neq", "NEQ") {
             @Override
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
                 return new NeqExpressionASTNode(left, right);
             }
         },
-        GT {
+        GT(">", "gt", "GT") {
             @Override
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
                 return new GtExpressionASTNode(left, right);
             }
         },
-        GTEQ {
+        GTEQ(">=", "gteq", "GTEQ") {
             @Override
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
                 return new GteqExpressionASTNode(left, right);
             }
         },
-        LT {
+        LT("<", "lt", "LT") {
             @Override
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
                 return new LtExpressionASTNode(left, right);
             }
         },
-        LTEQ {
+        LTEQ("<=", "lteq", "LTEQ") {
             @Override
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
                 return new LteqExpressionASTNode(left, right);
             }
-        }, OR, AND, PLUS, MINUS, MULTI, DIV;
+        },
+        OR,
+        AND,
+        PLUS,
+        MINUS,
+        MULTI,
+        DIV;
+
+        private static final Map<String, Operator> OPERATORS;
+        static {
+            Map<String, Operator> operators = new HashMap<>();
+            for (Operator operator : values()) {
+                if (Objects.nonNull(operator.supportedNames)) {
+                    for (String name : operator.supportedNames) {
+                        operators.put(name, operator);
+                    }
+                }
+            }
+            OPERATORS = Collections.unmodifiableMap(operators);
+        }
+
+        private final String[] supportedNames;
+
+        Operator(String firstName, String... otherNames) {
+            supportedNames = ArrayUtils.makeArray(String.class, firstName, otherNames);
+        }
+
+        Operator() {
+            supportedNames = null;
+        }
 
         public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
             return null;
         }
 
         public static Operator getByName(String name) {
-            return null;
+            return OPERATORS.get(name);
         }
     }
 }

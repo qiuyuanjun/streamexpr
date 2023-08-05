@@ -5,7 +5,11 @@
 module streamexpr.core {
 
     requires scala.library;
-    requires streamexpr.api;
+    requires transitive streamexpr.api;
+    requires spring.expression;
 
     exports com.qiuyj.streamexpr;
+
+    exports com.qiuyj.streamexpr.parser to streamexpr.test;
+    exports com.qiuyj.streamexpr.utils to streamexpr.test;
 }

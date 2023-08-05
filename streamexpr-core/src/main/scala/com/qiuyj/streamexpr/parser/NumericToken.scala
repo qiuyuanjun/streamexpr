@@ -12,7 +12,9 @@ private[parser] class NumericToken(private[this] val sourceString: String,
                                    private[this] val numericInfo: NumericInfo)
     extends Token(sourceString, startPos, kind) {
 
-  def getNumericValue: AnyVal = numericInfo.integerPart
+  override def getTokenValue: Any = getNumericValue
+
+  private def getNumericValue: AnyVal = numericInfo.integerPart
 
   def getRadix: Int = numericInfo.radix
 

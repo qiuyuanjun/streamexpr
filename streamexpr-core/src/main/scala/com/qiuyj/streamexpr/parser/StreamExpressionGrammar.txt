@@ -30,8 +30,20 @@ AddSubExpr: MultiDivExpr ( PLUS | MINUS ) MultiDivExpr
 
 MultiDivExpr: PrimaryExpr ( MULTI | DIV ) PrimaryExpr
 
-Primary
+PrimaryExpr: ParanExpr
+    | PrefixExpr
+    | UnaryExpr
+    | Identifier
+    | Numeric
+    | ArrayExpr
 
+ParanExpr: LPARAN Expr RPARAN
+
+ArrayExpr: LBRACKET RBRACKET
+    | LBRACKET Expr ( COMMA Expr )* RBRACKET
+
+LBRACKET: "["
+RBRACKET: "]"
 MULTI: "*"
 DIV: "/"
 PLUS: "+"

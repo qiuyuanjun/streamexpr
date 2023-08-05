@@ -66,6 +66,10 @@ public enum TokenKindImpl implements TokenKind {
     AMPAMP("&&"),
     STAR("*"),
     DIV("/"),
+    QMARK("?"),
+    COLON(":"),
+    LBRACKET("["),
+    RBRACKET("]"),
 
     EOF(TokenKind.TAG_EOF);
 

@@ -18,4 +18,7 @@ public interface ASTNode {
      */
     ASTNode getChildASTNode(int index);
 
+    default Object evaluate() {
+        return null;
+    }
 }

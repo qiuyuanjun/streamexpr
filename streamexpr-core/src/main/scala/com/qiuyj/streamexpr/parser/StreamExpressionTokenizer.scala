@@ -1,5 +1,6 @@
 package com.qiuyj.streamexpr.parser
 
+import com.qiuyj.streamexpr.api.Token.NamedToken
 import com.qiuyj.streamexpr.api.{LexerException, Token, TokenKind, TokenKinds}
 import com.qiuyj.streamexpr.utils.CharStream
 
@@ -91,7 +92,7 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
     }
     if (source.hasNext) {
       // 仅仅是预读一个字符，并不移动位置指针
-      lookaheadCharacter = source.getNextChar
+      lookaheadCharacter = source.getCurrentChar
     }
     lookaheadCharacter
   }
@@ -175,19 +176,37 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         kind = lookaheadTokenIfMatch(false,
           '!',
           '=')
-      case '@' =>
-        // 从上下文里面获取参数
-        kind = TokenKinds.getInstance getTokenKindByName "@"
-//        next
-//        readContextVariable()
-//        pushback()
+      case '@' => // 从上下文里面获取变量
+        putThenNext
+        readContextAttribute()
+        pushback()
       case _ =>
         lexError(s"Illegal character '$character'")
         throw new IllegalStateException("Never reach here!")
     }
     val sourceString = if (stringContent.isEmpty) kind.getName else stringContent.toString
-    if (kind.isNumeric) new NumericToken(sourceString, startPos, kind, numericInfo)
-    else new Token(sourceString, startPos, kind)
+    if (kind.isNamed)
+      new NamedToken(sourceString, sourceString, startPos, kind)
+    else if (kind.isNumeric)
+      new NumericToken(sourceString, startPos, kind, numericInfo)
+    else
+      new Token(sourceString, startPos, kind)
+  }
+
+  /**
+   * 读取上下文属性
+   */
+  private def readContextAttribute(): Unit = {
+    while (isInRange('a', 'z')
+      || isInRange('A', 'Z')
+      || isInRange('0', '9')
+      || isOneOf('_', '$')) {
+      putThenNext
+    }
+    if (stringContent.length == 1) {
+      lexError("Context attribute must has content")
+    }
+    kind = StreamExpressionTokenKind.CTX_ATTR
   }
 
   /**
@@ -399,7 +418,8 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
   }
 
   /**
-   * 跳过所有的空白字符，并返回首个非空白字符的位置
+   * 跳过所有的空白字符，并返回第一个非空白字符的位置信息
+   * @note 该方法会把位置指针放置到第一个非空白字符后一个字符处
    */
   private def skipWhitespace: Int = {
     while (Character.isWhitespace(next)) {}

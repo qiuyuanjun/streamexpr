@@ -6,5 +6,5 @@ package com.qiuyj.streamexpr.api;
  */
 public interface Expression {
 
-    Object getValue();
+    Object evaluate();
 }
