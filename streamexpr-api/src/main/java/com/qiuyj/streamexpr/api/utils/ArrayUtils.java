@@ -2,7 +2,6 @@ package com.qiuyj.streamexpr.api.utils;
 
 import java.lang.reflect.Array;
 import java.util.Deque;
-import java.util.Queue;
 
 /**
  * @author qiuyj
