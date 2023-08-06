@@ -24,14 +24,16 @@ public abstract class ArrayUtils {
         T[] array = (T[]) Array.newInstance(componentType, queueLen);
         switch (queueLen) {
             case 0: break;
-            case 8: array[7] = queue.removeLast();
-            case 7: array[6] = queue.removeLast();
-            case 6: array[5] = queue.removeLast();
-            case 5: array[4] = queue.removeLast();
-            case 4: array[3] = queue.removeLast();
-            case 3: array[2] = queue.removeLast();
-            case 2: array[1] = queue.removeLast();
-            case 1: array[0] = queue.removeLast(); break;
+            case 10: array[9] = queue.removeLast();
+            case 9:  array[8] = queue.removeLast();
+            case 8:  array[7] = queue.removeLast();
+            case 7:  array[6] = queue.removeLast();
+            case 6:  array[5] = queue.removeLast();
+            case 5:  array[4] = queue.removeLast();
+            case 4:  array[3] = queue.removeLast();
+            case 3:  array[2] = queue.removeLast();
+            case 2:  array[1] = queue.removeLast();
+            case 1:  array[0] = queue.removeLast(); break;
             default: array = queue.toArray(array);
         }
         return array;

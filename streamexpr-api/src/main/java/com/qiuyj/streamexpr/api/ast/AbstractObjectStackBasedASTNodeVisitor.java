@@ -2,8 +2,9 @@ package com.qiuyj.streamexpr.api.ast;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Objects;
-import java.util.Stack;
 
 /**
  * @author qiuyj
@@ -12,7 +13,10 @@ import java.util.Stack;
 @SuppressWarnings("unchecked")
 public abstract class AbstractObjectStackBasedASTNodeVisitor implements ASTNodeVisitor {
 
-    private final Stack<Object> objectStack = new Stack<>();
+    /**
+     * 这里没有使用Stack来实现栈，而是使用Deque来实现，因为Stack使用了synchronized，而我们的场景不存在线程安全问题，因此Deque实现的栈更合适
+     */
+    private final Deque<Object> objectStack = new ArrayDeque<>();
 
     protected AbstractObjectStackBasedASTNodeVisitor(Object root) {
         pushObject(root);
