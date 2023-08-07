@@ -172,8 +172,8 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         kind = lookaheadTokenIfMatch(false,
           '&',
           '&')
-      case '!' => // 目前仅支持 != 组合
-        kind = lookaheadTokenIfMatch(false,
+      case '!' =>
+        kind = lookaheadTokenIfMatch(true,
           '!',
           '=')
       case '@' => // 从上下文里面获取变量

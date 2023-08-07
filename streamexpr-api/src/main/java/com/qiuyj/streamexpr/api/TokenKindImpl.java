@@ -70,6 +70,9 @@ public enum TokenKindImpl implements TokenKind {
     COLON(":"),
     LBRACKET("["),
     RBRACKET("]"),
+    BANG("!"),
+    INC("++"),
+    DEC("--"),
 
     EOF(TokenKind.TAG_EOF);
 

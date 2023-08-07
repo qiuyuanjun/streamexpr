@@ -28,7 +28,7 @@ object StreamExpressionASTNode {
     private[this] val streamOps: util.Deque[StreamOpASTNode] = new util.ArrayDeque[StreamOpASTNode](6)
 
     def addStreamOp(streamOp: StreamOpASTNode): this.type = {
-      streamOps addLast streamOp
+      streamOps add streamOp
       this
     }
 

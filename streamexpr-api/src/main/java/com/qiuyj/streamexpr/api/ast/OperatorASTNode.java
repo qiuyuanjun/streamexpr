@@ -36,37 +36,37 @@ public interface OperatorASTNode extends ExpressionASTNode {
 
         EQ("==", "eq", "EQ") {
             @Override
-            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
                 return new EqExpressionASTNode(left, right);
             }
         },
         NEQ("!=", "neq", "NEQ") {
             @Override
-            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
                 return new NeqExpressionASTNode(left, right);
             }
         },
         GT(">", "gt", "GT") {
             @Override
-            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
                 return new GtExpressionASTNode(left, right);
             }
         },
         GTEQ(">=", "gteq", "GTEQ") {
             @Override
-            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
                 return new GteqExpressionASTNode(left, right);
             }
         },
         LT("<", "lt", "LT") {
             @Override
-            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
                 return new LtExpressionASTNode(left, right);
             }
         },
         LTEQ("<=", "lteq", "LTEQ") {
             @Override
-            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
                 return new LteqExpressionASTNode(left, right);
             }
         },
@@ -75,7 +75,26 @@ public interface OperatorASTNode extends ExpressionASTNode {
         PLUS,
         MINUS,
         MULTI,
-        DIV;
+        DIV,
+        INC("++") {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
+                return null;
+            }
+        },
+        DEC("--") {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
+                return null;
+            }
+        },
+        BANG("!") {
+            @Override
+            public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
+                return null;
+            }
+        },
+        ;
 
         private static final Map<String, Operator> OPERATORS;
         static {
@@ -100,7 +119,7 @@ public interface OperatorASTNode extends ExpressionASTNode {
             supportedNames = null;
         }
 
-        public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right) {
+        public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {
             return null;
         }
 

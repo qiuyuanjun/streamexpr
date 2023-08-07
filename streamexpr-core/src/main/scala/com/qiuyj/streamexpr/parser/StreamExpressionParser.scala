@@ -170,7 +170,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       Operator.getByName(lexer.getPrevToken.getKind.getName) match {
         case op: Operator => op.createOperatorASTNode(left, parseAddSubExpr)
         case _ =>
-          parseError("Unsupported relational operator")
+          parseError(s"Unsupported relational operator ${lexer.getPrevToken.getKind.getName}")
           throw new IllegalStateException("Never reach here!")
       }
     }
@@ -213,14 +213,18 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    * PrimaryExpr: ParanExpr
    *   | ContextAttribute
    *   | SpelExpr
+   *   | ArrayExpr
    *   | PrefixExpr
+   *   | PostfixExpr
    *   | UnaryExpr
    *   | Identifier
    *   | Numeric
-   *   | ArrayExpr
    */
   private def parsePrimaryExpr: ASTNode = {
-    if (maybeParanExpr || maybeContextAttribute || maybeSpelExpression)
+    if (maybeParanExpr
+      || maybeContextAttribute
+      || maybeSpelExpression
+      || maybePrefixExpr)
       popConstructNode
     else if (maybeArrayExpr) {
       if (constructNodes.isEmpty)
@@ -232,6 +236,28 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     }
     else
       null
+  }
+
+  /*
+   * PrefixExpr: ( INC | DEC | BANG | PLUS | MINUS ) Expr
+   */
+  private def maybePrefixExpr: Boolean = {
+    if (`match`("++")
+      || `match`("--")
+      || `match`("!")
+      || `match`("+")
+      || `match`("-")) {
+      Operator.getByName(lexer.getPrevToken.getKind.getName) match {
+        case operator: Operator =>
+          pushConstructNode(operator.createOperatorASTNode(parseExpr, null, true))
+        case _ =>
+          parseError(s"Unsupported prefix operator ${lexer.getPrevToken.getKind.getName}")
+          throw new IllegalStateException("Never reach here!")
+      }
+      true
+    }
+    else
+      false
   }
 
   /*

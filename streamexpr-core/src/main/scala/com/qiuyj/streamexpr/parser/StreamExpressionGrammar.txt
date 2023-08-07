@@ -32,6 +32,7 @@ MultiDivExpr: PrimaryExpr ( MULTI | DIV ) PrimaryExpr
 
 PrimaryExpr: ParanExpr
     | PrefixExpr
+    | PostfixExpr
     | UnaryExpr
     | Identifier
     | Numeric
@@ -42,6 +43,11 @@ ParanExpr: LPARAN Expr RPARAN
 ArrayExpr: LBRACKET RBRACKET
     | LBRACKET Expr ( COMMA Expr )* RBRACKET
 
+PrefixExpr: ( INC | DEC | BANG ) Expr
+
+INC: "++"
+DEC: "--"
+BANG: "!"
 LBRACKET: "["
 RBRACKET: "]"
 MULTI: "*"
