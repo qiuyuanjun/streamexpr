@@ -19,10 +19,9 @@ public abstract class ArrayUtils {
      * @return 转换后的数组
      * @param <T> 数组元素的类型
      */
-    public static <T> T[] transferToArray(Class<T> componentType, Deque<T> queue) {
-        int queueLen = queue.size();
-        T[] array = (T[]) Array.newInstance(componentType, queueLen);
-        switch (queueLen) {
+    public static <T> T[] transferToArray(Class<T> componentType, Deque<T> queue, int arrayLen) {
+        T[] array = (T[]) Array.newInstance(componentType, arrayLen);
+        switch (arrayLen) {
             case 0: break;
             case 10: array[9] = queue.removeLast();
             case 9:  array[8] = queue.removeLast();

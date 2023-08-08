@@ -6,11 +6,12 @@ import com.qiuyj.streamexpr.api.ast.OperatorASTNode.Operator
 import com.qiuyj.streamexpr.api.ast._
 import com.qiuyj.streamexpr.api.utils.ArrayUtils
 import com.qiuyj.streamexpr.ast._
+import com.qiuyj.streamexpr.parser.StreamExpressionParser.ConstructNodeHelper
 import com.qiuyj.streamexpr.utils.ParseUtils
 
 import java.util
 import java.util.Objects
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.immutable.ArraySeq
 
 /**
  * @author qiuyj
@@ -21,29 +22,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   /**
    * 用于存储抽象语法树中间构造节点
    */
-  private[this] var constructNodes: util.Deque[ASTNode] = _
-
-  private def initConstructNodes(): Unit = {
-    if (Objects.isNull(constructNodes)) {
-      constructNodes = new util.ArrayDeque[ASTNode]
-    }
-  }
-
-  // --------------- Stack begin
-  private def pushConstructNode(astNode: ASTNode): Unit = {
-    initConstructNodes()
-    constructNodes.push(astNode)
-  }
-
-  private def popConstructNode: ASTNode = constructNodes.pop
-  // --------------- Stack end
-
-  // --------------- Queue begin
-  private def addConstructNode(astNode: ASTNode): Unit = {
-    initConstructNodes()
-    constructNodes.add(astNode)
-  }
-  // --------------- Queue end
+  private[this] val constructNodeHelper: ConstructNodeHelper = new ConstructNodeHelper
 
   override def parseExpression: StreamExpression = {
     val visitor = new StreamExpressionVisitor
@@ -86,16 +65,14 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     accept(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)
     val opName = new IdentifierASTNode(lexer.getPrevToken.getSourceString)
     accept(tokenKinds getTokenKindByName "(")
-    val parameterSeparator = tokenKinds getTokenKindByName ","
     // 解析参数
-    // 大多数情况参数不会超过5个
-    val parameters = new ArrayBuffer[ASTNode](5)
+    constructNodeHelper.start()
     do {
-      parameters += parseParameter
+      constructNodeHelper.enqueue(parseParameter)
     }
-    while (`match`(parameterSeparator))
+    while (`match`(","))
     accept(tokenKinds getTokenKindByName ")")
-    new StreamOpASTNode(opName, parameters.toIndexedSeq: _*)
+    new StreamOpASTNode(opName, constructNodeHelper.makeSeq: _*)
   }
 
   /*
@@ -225,15 +202,9 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       || maybeContextAttribute
       || maybeSpelExpression
       || maybePrefixExpr)
-      popConstructNode
-    else if (maybeArrayExpr) {
-      if (constructNodes.isEmpty)
-        ArrayExpression.empty
-      else {
-        val array = ArrayUtils.transferToArray(classOf[ASTNode], constructNodes)
-        new ArrayExpression(array)
-      }
-    }
+      constructNodeHelper.pop
+    else if (maybeArrayExpr)
+      new ArrayExpression(constructNodeHelper.makeArray)
     else
       null
   }
@@ -249,7 +220,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       || `match`("-")) {
       Operator.getByName(lexer.getPrevToken.getKind.getName) match {
         case operator: Operator =>
-          pushConstructNode(operator.createOperatorASTNode(parseExpr, null, true))
+          constructNodeHelper.push(operator.createOperatorASTNode(parseExpr, null, true))
         case _ =>
           parseError(s"Unsupported prefix operator ${lexer.getPrevToken.getKind.getName}")
           throw new IllegalStateException("Never reach here!")
@@ -269,8 +240,9 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   private def maybeArrayExpr: Boolean = {
     if (`match`("[")) {
       if (!`match`("]")) {
+        constructNodeHelper.start()
         do {
-          addConstructNode(parseExpr)
+          constructNodeHelper.enqueue(parseExpr)
         }
         while (`match`(","))
         accept("]")
@@ -283,7 +255,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
 
   private def maybeSpelExpression: Boolean = {
     if (`match`(StreamExpressionTokenKind.SPEL)) {
-      pushConstructNode(new SPELASTNode(lexer.getPrevToken.getSourceString))
+      constructNodeHelper.push(new SPELASTNode(lexer.getPrevToken.getSourceString))
       true
     }
     else
@@ -292,7 +264,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
 
   private def maybeContextAttribute: Boolean = {
     if (`match`(StreamExpressionTokenKind.CTX_ATTR)) {
-      pushConstructNode(new ContextAttributeASTNode(lexer.getPrevToken.getTokenValue.asInstanceOf[String]))
+      constructNodeHelper.push(new ContextAttributeASTNode(lexer.getPrevToken.getTokenValue.asInstanceOf[String]))
       true
     }
     else
@@ -306,7 +278,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    */
   private def maybeParanExpr: Boolean = {
     if (`match`("(")) {
-      pushConstructNode(parseExpr)
+      constructNodeHelper.push(parseExpr)
       accept(")")
       true
     }
@@ -361,6 +333,54 @@ object StreamExpressionParser {
     else if (allowEmptyStreamExpression) null
     else {
       throw new IllegalArgumentException("The streamExpr can not be null or blank")
+    }
+  }
+
+  private[StreamExpressionParser] class ConstructNodeHelper {
+
+    /**
+     * 用于存储抽象语法树节点
+     */
+    private[this] val constructNodes: util.Deque[ASTNode] = new util.ArrayDeque[ASTNode]
+
+    private[this] var startIndexes: util.Deque[Int] = _
+
+    // ---------------------------- stack op begin ----------------------------
+    def push(astNode: ASTNode): Unit = constructNodes.push(astNode)
+
+    def pop: ASTNode = constructNodes.pop
+    // ---------------------------- stack op end ----------------------------
+
+    /**
+     * 记录当前队列中的插入位置，一般是创建数组之前调用该方法
+     */
+    def start(): Unit = {
+      initStartIndexed()
+      startIndexes.push(Ordering.Int.max(0, constructNodes.size - 1))
+    }
+
+    def makeArray: Array[ASTNode] = {
+      val len = constructNodes.size - startIndexes.remove
+      if (len == 0)
+        AbstractASTNode.EMPTY
+      else
+        ArrayUtils.transferToArray(classOf[ASTNode], constructNodes, len)
+    }
+
+    def makeSeq: Seq[ASTNode] = {
+      val len = constructNodes.size - startIndexes.remove
+      if (len == 0)
+        Seq.empty
+      else
+        new ArraySeq.ofRef[ASTNode](ArrayUtils.transferToArray(classOf[ASTNode], constructNodes, len))
+    }
+
+    def enqueue(astNode: ASTNode): Unit = constructNodes.add(astNode)
+
+    private[this] def initStartIndexed(): Unit = {
+      if (Objects.isNull(startIndexes)) {
+        startIndexes = new util.ArrayDeque[Int](5)
+      }
     }
   }
 }

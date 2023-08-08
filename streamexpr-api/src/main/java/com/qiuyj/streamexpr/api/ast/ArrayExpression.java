@@ -11,10 +11,6 @@ public class ArrayExpression extends AbstractASTNode implements SingleValueASTNo
         super(array);
     }
 
-    private ArrayExpression() {
-        // 空数组
-    }
-
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
         visitor.visitArrayExpression(this);
@@ -30,7 +26,4 @@ public class ArrayExpression extends AbstractASTNode implements SingleValueASTNo
         throw new UnsupportedOperationException();
     }
 
-    public static ArrayExpression empty() {
-        return new ArrayExpression();
-    }
 }
