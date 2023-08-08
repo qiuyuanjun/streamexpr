@@ -239,8 +239,8 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    */
   private def maybeArrayExpr: Boolean = {
     if (`match`("[")) {
+      constructNodeHelper.start()
       if (!`match`("]")) {
-        constructNodeHelper.start()
         do {
           constructNodeHelper.enqueue(parseExpr)
         }
