@@ -10,7 +10,6 @@ import com.qiuyj.streamexpr.parser.StreamExpressionParser.ConstructNodeHelper
 import com.qiuyj.streamexpr.utils.ParseUtils
 
 import java.util
-import java.util.Objects
 import scala.collection.immutable.ArraySeq
 
 /**
@@ -343,7 +342,11 @@ object StreamExpressionParser {
      */
     private[this] val constructNodes: util.Deque[ASTNode] = new util.ArrayDeque[ASTNode]
 
-    private[this] var startIndexes: util.Deque[Int] = _
+    /**
+     * 用于存储当前队列中的插入位置，一般是创建数组之前会使用该字段
+     * lazy：延迟加载，第一次使用的时候才new
+     */
+    private[this] lazy val startIndexes: util.Deque[Int] = new util.ArrayDeque[Int](5)
 
     // ---------------------------- stack op begin ----------------------------
     def push(astNode: ASTNode): Unit = constructNodes.push(astNode)
@@ -354,10 +357,8 @@ object StreamExpressionParser {
     /**
      * 记录当前队列中的插入位置，一般是创建数组之前调用该方法
      */
-    def start(): Unit = {
-      initStartIndexed()
+    def start(): Unit =
       startIndexes.push(Ordering.Int.max(0, constructNodes.size - 1))
-    }
 
     def makeArray: Array[ASTNode] = {
       val len = constructNodes.size - startIndexes.pop
@@ -377,10 +378,5 @@ object StreamExpressionParser {
 
     def enqueue(astNode: ASTNode): Unit = constructNodes.offer(astNode)
 
-    private[this] def initStartIndexed(): Unit = {
-      if (Objects.isNull(startIndexes)) {
-        startIndexes = new util.ArrayDeque[Int](5)
-      }
-    }
   }
 }
