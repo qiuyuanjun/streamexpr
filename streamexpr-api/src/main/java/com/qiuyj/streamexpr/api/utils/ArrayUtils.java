@@ -12,6 +12,10 @@ public abstract class ArrayUtils {
 
     private ArrayUtils() { /* for private */ }
 
+    public static <T> T[] transferToArray(Class<T> componentType, Deque<T> queue) {
+        return transferToArray(componentType, queue, queue.size());
+    }
+
     /**
      * 将队列里面的元素按照入队的顺序转换到数组里面（队列里面的元素会被移除）
      * @param componentType 数组元素的类型

@@ -360,7 +360,7 @@ object StreamExpressionParser {
     }
 
     def makeArray: Array[ASTNode] = {
-      val len = constructNodes.size - startIndexes.remove
+      val len = constructNodes.size - startIndexes.pop
       if (len == 0)
         AbstractASTNode.EMPTY
       else
@@ -368,14 +368,14 @@ object StreamExpressionParser {
     }
 
     def makeSeq: Seq[ASTNode] = {
-      val len = constructNodes.size - startIndexes.remove
+      val len = constructNodes.size - startIndexes.pop
       if (len == 0)
         Seq.empty
       else
         new ArraySeq.ofRef[ASTNode](ArrayUtils.transferToArray(classOf[ASTNode], constructNodes, len))
     }
 
-    def enqueue(astNode: ASTNode): Unit = constructNodes.add(astNode)
+    def enqueue(astNode: ASTNode): Unit = constructNodes.offer(astNode)
 
     private[this] def initStartIndexed(): Unit = {
       if (Objects.isNull(startIndexes)) {
