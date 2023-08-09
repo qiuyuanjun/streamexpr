@@ -13,7 +13,7 @@ public abstract class ArrayUtils {
     private ArrayUtils() { /* for private */ }
 
     public static <T> T[] transferToArray(Class<T> componentType, Deque<T> queue) {
-        return transferToArray(componentType, queue, queue.size());
+        return transferToArray(componentType, queue, 0, queue.size());
     }
 
     /**
@@ -23,21 +23,28 @@ public abstract class ArrayUtils {
      * @return 转换后的数组
      * @param <T> 数组元素的类型
      */
-    public static <T> T[] transferToArray(Class<T> componentType, Deque<T> queue, int arrayLen) {
+    public static <T> T[] transferToArray(Class<T> componentType, Deque<T> queue, int startIndex, int arrayLen) {
         T[] array = (T[]) Array.newInstance(componentType, arrayLen);
-        switch (arrayLen) {
-            case 0: break;
-            case 10: array[9] = queue.removeLast();
-            case 9:  array[8] = queue.removeLast();
-            case 8:  array[7] = queue.removeLast();
-            case 7:  array[6] = queue.removeLast();
-            case 6:  array[5] = queue.removeLast();
-            case 5:  array[4] = queue.removeLast();
-            case 4:  array[3] = queue.removeLast();
-            case 3:  array[2] = queue.removeLast();
-            case 2:  array[1] = queue.removeLast();
-            case 1:  array[0] = queue.removeLast(); break;
-            default: array = queue.toArray(array);
+        if (startIndex == 0) {
+            switch (arrayLen) {
+                case 0: break;
+                case 10: array[9] = queue.removeLast();
+                case 9:  array[8] = queue.removeLast();
+                case 8:  array[7] = queue.removeLast();
+                case 7:  array[6] = queue.removeLast();
+                case 6:  array[5] = queue.removeLast();
+                case 5:  array[4] = queue.removeLast();
+                case 4:  array[3] = queue.removeLast();
+                case 3:  array[2] = queue.removeLast();
+                case 2:  array[1] = queue.removeLast();
+                case 1:  array[0] = queue.removeLast(); break;
+                default: array = queue.toArray(array);
+            }
+        }
+        else {
+            while (--arrayLen >= 0) {
+                array[arrayLen] = queue.removeLast();
+            }
         }
         return array;
     }

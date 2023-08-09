@@ -357,23 +357,24 @@ object StreamExpressionParser {
     /**
      * 记录当前队列中的插入位置，一般是创建数组之前调用该方法
      */
-    def start(): Unit =
-      startIndexes.push(Ordering.Int.max(0, constructNodes.size - 1))
+    def start(): Unit = startIndexes.push(constructNodes.size)
 
     def makeArray: Array[ASTNode] = {
-      val len = constructNodes.size - startIndexes.pop
+      val startIndex = startIndexes.pop
+      val len = constructNodes.size - startIndex
       if (len == 0)
         AbstractASTNode.EMPTY
       else
-        ArrayUtils.transferToArray(classOf[ASTNode], constructNodes, len)
+        ArrayUtils.transferToArray(classOf[ASTNode], constructNodes, startIndex, len)
     }
 
     def makeSeq: Seq[ASTNode] = {
-      val len = constructNodes.size - startIndexes.pop
+      val startIndex = startIndexes.pop
+      val len = constructNodes.size - startIndex
       if (len == 0)
         Seq.empty
       else
-        new ArraySeq.ofRef[ASTNode](ArrayUtils.transferToArray(classOf[ASTNode], constructNodes, len))
+        new ArraySeq.ofRef[ASTNode](ArrayUtils.transferToArray(classOf[ASTNode], constructNodes, startIndex, len))
     }
 
     def enqueue(astNode: ASTNode): Unit = constructNodes.offer(astNode)
