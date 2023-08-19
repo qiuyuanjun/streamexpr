@@ -232,10 +232,11 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   private def maybePostfixExpr: Boolean = {
+    val prev = lexer.getPrevToken
     if (`match`("++") || `match`("--")) {
       Operator.getByName(lexer.getPrevToken.getKind.getName) match {
         case operator: Operator =>
-          constructNodeHelper.push(operator.createOperatorASTNode(parseExpr, null, false))
+          constructNodeHelper.push(operator.createOperatorASTNode(new IdentifierASTNode(prev.getSourceString), null, false))
         case _ =>
           parseError(s"Unsupported postfix operator ${lexer.getPrevToken.getKind.getName}")
       }
