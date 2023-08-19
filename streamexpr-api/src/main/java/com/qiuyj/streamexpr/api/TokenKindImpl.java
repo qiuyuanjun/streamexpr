@@ -73,6 +73,7 @@ public enum TokenKindImpl implements TokenKind {
     BANG("!"),
     INC("++"),
     DEC("--"),
+    MOD("%"),
 
     EOF(TokenKind.TAG_EOF);
 

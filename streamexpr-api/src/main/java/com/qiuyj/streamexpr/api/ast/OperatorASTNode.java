@@ -76,6 +76,7 @@ public interface OperatorASTNode extends ExpressionASTNode {
         MINUS,
         MULTI,
         DIV,
+        MOD,
         INC("++") {
             @Override
             public OperatorASTNode createOperatorASTNode(ASTNode left, ASTNode right, Object... args) {

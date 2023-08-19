@@ -60,17 +60,16 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    * Identifier: IdentifierStart (IdentifierPart)*
    */
   private def parseStreamOp: StreamOpASTNode = {
-    val tokenKinds = TokenKinds.getInstance
-    accept(tokenKinds getTokenKindByTag TokenKind.TAG_IDENTIFIER)
+    accept(TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_IDENTIFIER)
     val opName = new IdentifierASTNode(lexer.getPrevToken.getSourceString)
-    accept(tokenKinds getTokenKindByName "(")
+    accept("(")
     // 解析参数
     constructNodeHelper.start()
     do {
       constructNodeHelper.enqueue(parseParameter)
     }
     while (`match`(","))
-    accept(tokenKinds getTokenKindByName ")")
+    accept(")")
     new StreamOpASTNode(opName, constructNodeHelper.makeSeq: _*)
   }
 
@@ -171,9 +170,10 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   /*
-   * MultiDivExpr: PrimaryExpr ( MULTI | DIV ) PrimaryExpr
+   * MultiDivExpr: PrimaryExpr ( MULTI | DIV | MOD ) PrimaryExpr
    * MULTI: "*"
    * DIV: "/"
+   * MOD: "%"
    */
   private def parseMultiDivExpr: ASTNode = {
     val left = parsePrimaryExpr
@@ -181,6 +181,8 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       new MultiExpressionASTNode(left, parsePrimaryExpr)
     else if (`match`("/"))
       new DivExpressionASTNode(left, parsePrimaryExpr)
+    else if (`match`("%"))
+      new ModExpressionASTNode(left, parsePrimaryExpr)
     else
       left
   }
@@ -192,7 +194,8 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
    *   | ArrayExpr
    *   | PrefixExpr
    *   | PostfixExpr
-   *   | UnaryExpr
+   *   | NestedPropertyAccessor
+   *   | FunctionCall
    *   | Identifier
    *   | Numeric
    */
@@ -200,12 +203,78 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     if (maybeParanExpr
       || maybeContextAttribute
       || maybeSpelExpression
-      || maybePrefixExpr)
+      || maybePrefixExpr
+      || maybeIdentifierRelated)
       constructNodeHelper.pop
     else if (maybeArrayExpr)
       new ArrayExpression(constructNodeHelper.makeArray)
     else
       null
+  }
+
+  /*
+   * NestedPropertyAccessor: Identifier ( BAR Identifier )+
+   */
+  private def maybeNestedPropertyAccessor: Boolean = {
+    val prev = lexer.getPrevToken
+    if (`match`("|")) {
+      constructNodeHelper.start()
+      constructNodeHelper.enqueue(new IdentifierASTNode(prev.getSourceString))
+      do {
+        constructNodeHelper.enqueue(parseIdentifier)
+      }
+      while (`match`("|"))
+      constructNodeHelper.push(new NestedPropertyAccessorASTNode(constructNodeHelper.makeArray))
+      true
+    }
+    else
+      false
+  }
+
+  private def maybePostfixExpr: Boolean = {
+    if (`match`("++") || `match`("--")) {
+      Operator.getByName(lexer.getPrevToken.getKind.getName) match {
+        case operator: Operator =>
+          constructNodeHelper.push(operator.createOperatorASTNode(parseExpr, null, false))
+        case _ =>
+          parseError(s"Unsupported postfix operator ${lexer.getPrevToken.getKind.getName}")
+      }
+      true
+    }
+    else
+      false
+  }
+
+  /*
+   * FunctionCall: Identifier ( DOT Identifier )+
+   * DOT: "."
+   */
+  private def maybeFunctionCall: Boolean = {
+    val prev = lexer.getPrevToken
+    if (`match`(".")) {
+      constructNodeHelper.start()
+      constructNodeHelper.enqueue(new IdentifierASTNode(prev.getSourceString))
+      do {
+        constructNodeHelper.enqueue(parseIdentifier)
+      }
+      while (`match`("."))
+      constructNodeHelper.push(new FunctionCallASTNode(constructNodeHelper.makeArray))
+      true
+    }
+    else
+      false
+  }
+
+  private def maybeIdentifierRelated: Boolean = {
+    if (`match`(TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_IDENTIFIER)) {
+      if (!maybeNestedPropertyAccessor
+        && !maybePostfixExpr
+        && !maybeFunctionCall)
+        constructNodeHelper.push(new IdentifierASTNode(lexer.getPrevToken.getSourceString))
+      true
+    }
+    else
+      false
   }
 
   /*
@@ -222,7 +291,6 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
           constructNodeHelper.push(operator.createOperatorASTNode(parseExpr, null, true))
         case _ =>
           parseError(s"Unsupported prefix operator ${lexer.getPrevToken.getKind.getName}")
-          throw new IllegalStateException("Never reach here!")
       }
       true
     }
@@ -283,6 +351,13 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     }
     else
       false
+  }
+
+  private def parseIdentifier: IdentifierASTNode = {
+    if (!`match`(TokenKinds.getInstance getTokenKindByTag TokenKind.TAG_IDENTIFIER)) {
+      parseError(s"Expect identifier, but find: ${lexer.getCurrentToken.getKind}")
+    }
+    new IdentifierASTNode(lexer.getPrevToken.getSourceString)
   }
 
   private def accept(kindName: String): Unit = {
@@ -379,5 +454,6 @@ object StreamExpressionParser {
 
     def enqueue(astNode: ASTNode): Unit = constructNodes.offer(astNode)
 
+    def dequeue: ASTNode = constructNodes.poll
   }
 }

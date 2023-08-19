@@ -180,9 +180,10 @@ private[parser] class StreamExpressionTokenizer(private[this] val source: CharSt
         putThenNext
         readContextAttribute()
         pushback()
+      case '%' =>
+        kind = TokenKinds.getInstance getTokenKindByName "%"
       case _ =>
         lexError(s"Illegal character '$character'")
-        throw new IllegalStateException("Never reach here!")
     }
     val sourceString = if (stringContent.isEmpty) kind.getName else stringContent.toString
     if (kind.isNamed)
