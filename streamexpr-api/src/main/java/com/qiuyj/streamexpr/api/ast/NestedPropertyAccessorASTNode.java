@@ -12,6 +12,6 @@ public class NestedPropertyAccessorASTNode extends AbstractASTNode {
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitNestedPropertyAccessor(this);
     }
 }

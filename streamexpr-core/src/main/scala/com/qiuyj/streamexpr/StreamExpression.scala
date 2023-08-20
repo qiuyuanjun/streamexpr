@@ -2,7 +2,9 @@ package com.qiuyj.streamexpr
 
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.Expression
+import com.qiuyj.streamexpr.api.ast.ASTNode
 import com.qiuyj.streamexpr.parser.StreamExpressionParser
+import org.springframework.expression.spel.standard.SpelExpression
 
 import java.util.Objects
 import scala.collection.mutable.ArrayBuffer
@@ -93,32 +95,45 @@ object StreamExpression {
       if (kind == IDENTIFIER && value.toString == "_")
         valueContext
       else
-        kind.getValue(valueContext)
+        kind.getValue(value, valueContext)
     }
   }
 
-  trait Kind {
+  sealed trait Kind {
 
-    def getValue(valueContext: Any): Any
+    def getValue(value: Any, valueContext: Any): Any
   }
 
   case object IDENTIFIER extends Kind {
 
-    override def getValue(valueContext: Any): Any = {
+    override def getValue(value: Any, valueContext: Any): Any = {
 
     }
   }
 
   case object SPEL extends Kind {
 
-    override def getValue(valueContext: Any): Any = {
-
+    override def getValue(value: Any, valueContext: Any): Any = {
+      value.asInstanceOf[SpelExpression].getValue(valueContext)
     }
   }
 
   case object STRING_LITERAL extends Kind {
 
-    override def getValue(valueContext: Any): Any = {
+    override def getValue(value: Any, valueContext: Any): Any =
+      value.asInstanceOf[String]
+  }
+
+  case object AST extends Kind {
+
+    override def getValue(value: Any, valueContext: Any): Any = {
+      value.asInstanceOf[ASTNode].evaluate
+    }
+  }
+
+  case object CONTEXT_ATTRIBUTE extends Kind {
+
+    override def getValue(value: Any, valueContext: Any): Any = {
 
     }
   }

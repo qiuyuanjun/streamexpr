@@ -212,7 +212,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       constructNodeHelper.pop
     }
     else if (maybeArrayExpr)
-      new ArrayExpression(constructNodeHelper.makeArray)
+      new ArrayExpressionASTNode(constructNodeHelper.makeArray)
     else
       null
   }

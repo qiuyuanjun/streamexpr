@@ -12,6 +12,6 @@ public class NeqExpressionASTNode extends DefaultOperatorASTNode {
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitNeqExpression(this);
     }
 }

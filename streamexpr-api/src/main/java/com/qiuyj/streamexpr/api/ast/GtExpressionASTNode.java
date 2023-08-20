@@ -12,6 +12,6 @@ public class GtExpressionASTNode extends DefaultOperatorASTNode {
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitGtExpression(this);
     }
 }

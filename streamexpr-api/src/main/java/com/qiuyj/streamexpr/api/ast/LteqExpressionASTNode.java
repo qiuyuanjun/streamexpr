@@ -12,6 +12,6 @@ public class LteqExpressionASTNode extends DefaultOperatorASTNode {
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitLteqExpression(this);
     }
 }

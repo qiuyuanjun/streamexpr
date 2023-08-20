@@ -5,9 +5,9 @@ package com.qiuyj.streamexpr.api.ast;
  * @author qiuyj
  * @since 2023-08-05
  */
-public class ArrayExpression extends AbstractASTNode implements SingleValueASTNode {
+public class ArrayExpressionASTNode extends AbstractASTNode implements SingleValueASTNode {
 
-    public ArrayExpression(ASTNode[] array) {
+    public ArrayExpressionASTNode(ASTNode[] array) {
         super(array);
     }
 

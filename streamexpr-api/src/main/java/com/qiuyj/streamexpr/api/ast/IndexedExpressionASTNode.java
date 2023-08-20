@@ -13,7 +13,7 @@ public class IndexedExpressionASTNode extends AbstractASTNode implements SingleV
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-        
+        visitor.visitIndexedExpression(this);
     }
 
     @Override

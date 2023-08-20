@@ -42,7 +42,7 @@ public class FunctionCallASTNode extends AbstractASTNode implements SingleValueA
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitFunctionCall(this);
     }
 
     @Override

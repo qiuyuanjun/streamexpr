@@ -12,6 +12,6 @@ public class DivExpressionASTNode extends DefaultOperatorASTNode {
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitDivExpression(this);
     }
 }

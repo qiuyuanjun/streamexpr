@@ -12,6 +12,6 @@ public class MultiExpressionASTNode extends DefaultOperatorASTNode {
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitMultiExpression(this);
     }
 }

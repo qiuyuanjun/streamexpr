@@ -13,6 +13,6 @@ public class ModExpressionASTNode extends DefaultOperatorASTNode {
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
-
+        visitor.visitModExpression(this);
     }
 }

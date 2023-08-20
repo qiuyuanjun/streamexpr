@@ -51,7 +51,79 @@ public interface ASTNodeVisitor {
 
     /**
      * 访问数组表达式抽象语法树节点
-     * @param arrayExpression 数组表达式抽象语法树节点
+     * @param arrayExpressionASTNode 数组表达式抽象语法树节点
      */
-    void visitArrayExpression(ArrayExpression arrayExpression);
+    void visitArrayExpression(ArrayExpressionASTNode arrayExpressionASTNode);
+
+    /**
+     * 访问函数调用的抽象语法树节点
+     * @param functionCallASTNode 函数调用的抽象语法树节点
+     */
+    void visitFunctionCall(FunctionCallASTNode functionCallASTNode);
+
+    /**
+     * 访问索引表达式的抽象语法树节点
+     * @param indexedExpressionASTNode 索引表达式的抽象语法树节点
+     */
+    void visitIndexedExpression(IndexedExpressionASTNode indexedExpressionASTNode);
+
+    /**
+     * 访问除法表达式的抽象语法树节点
+     * @param divExpressionASTNode 除法表达式抽象语法树节点
+     */
+    void visitDivExpression(DivExpressionASTNode divExpressionASTNode);
+
+    /**
+     * 访问相等表达式的抽象语法树节点
+     * @param eqExpressionASTNode 相等表达式抽象语法树节点
+     */
+    void visitEqExpression(EqExpressionASTNode eqExpressionASTNode);
+
+    /**
+     * 访问大于等于表达式抽象语法树节点
+     * @param gteqExpressionASTNode 大于等于表达式抽象语法树节点
+     */
+    void visitGteqExpression(GteqExpressionASTNode gteqExpressionASTNode);
+
+    /**
+     * 访问大于表达式抽象语法树节点
+     * @param gtExpressionASTNode 大于表达式抽象语法树节点
+     */
+    void visitGtExpression(GtExpressionASTNode gtExpressionASTNode);
+
+    /**
+     * 访问小于等于表达式抽象语法树节点
+     * @param lteqExpressionASTNode 小于等于表达式抽象语法树节点
+     */
+    void visitLteqExpression(LteqExpressionASTNode lteqExpressionASTNode);
+
+    /**
+     * 访问小于表达式抽象语法树节点
+     * @param ltExpressionASTNode 小于表达式抽象语法树节点
+     */
+    void visitLtExpression(LtExpressionASTNode ltExpressionASTNode);
+
+    /**
+     * 访问求余表达式抽象语法树节点
+     * @param modExpressionASTNode 求余表达式抽象语法树节点
+     */
+    void visitModExpression(ModExpressionASTNode modExpressionASTNode);
+
+    /**
+     * 访问乘法表达式抽象语法树节点
+     * @param multiExpressionASTNode 乘法表达式抽象语法树节点
+     */
+    void visitMultiExpression(MultiExpressionASTNode multiExpressionASTNode);
+
+    /**
+     * 访问不相等抽象语法树节点
+     * @param neqExpressionASTNode 不相等抽象语法树节点
+     */
+    void visitNeqExpression(NeqExpressionASTNode neqExpressionASTNode);
+
+    /**
+     * 访问内嵌属性访问表达式抽象语法树节点
+     * @param nestedPropertyAccessorASTNode 内嵌属性访问表达式抽象语法树节点
+     */
+    void visitNestedPropertyAccessor(NestedPropertyAccessorASTNode nestedPropertyAccessorASTNode);
 }
