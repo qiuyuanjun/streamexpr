@@ -204,8 +204,13 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
       || maybeContextAttribute
       || maybeSpelExpression
       || maybePrefixExpr
-      || maybeIdentifierRelated)
+      || maybeIdentifierRelated) {
+      if (`match`("[")) {
+        constructNodeHelper.push(new IndexedExpressionASTNode(constructNodeHelper.pop, parseExpr))
+        accept("]")
+      }
       constructNodeHelper.pop
+    }
     else if (maybeArrayExpr)
       new ArrayExpression(constructNodeHelper.makeArray)
     else
@@ -247,23 +252,35 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   /*
-   * FunctionCall: Identifier ( DOT Identifier )+
+   * FunctionCall: Identifier ( DOT Identifier )+ ( LPARAN RPARAN | LPARAN Expr ( COMMA Expr )* )
    * DOT: "."
    */
   private def maybeFunctionCall: Boolean = {
     val prev = lexer.getPrevToken
     if (`match`(".")) {
+      val functionName = parseFunctionName(prev)
       constructNodeHelper.start()
-      constructNodeHelper.enqueue(new IdentifierASTNode(prev.getSourceString))
+      accept("(")
       do {
-        constructNodeHelper.enqueue(parseIdentifier)
+        constructNodeHelper.enqueue(parseExpr)
       }
-      while (`match`("."))
-      constructNodeHelper.push(new FunctionCallASTNode(constructNodeHelper.makeArray))
+      while (`match`(","))
+      accept(")")
+      constructNodeHelper.push(new FunctionCallASTNode(functionName, constructNodeHelper.makeArray))
       true
     }
     else
       false
+  }
+
+  private def parseFunctionName(start: Token): String = {
+    constructNodeHelper.start()
+    constructNodeHelper.enqueue(new IdentifierASTNode(start.getSourceString))
+    do {
+      constructNodeHelper.enqueue(parseIdentifier)
+    }
+    while (`match`("."))
+    constructNodeHelper.makeArray.mkString(".")
   }
 
   private def maybeIdentifierRelated: Boolean = {
@@ -455,6 +472,5 @@ object StreamExpressionParser {
 
     def enqueue(astNode: ASTNode): Unit = constructNodes.offer(astNode)
 
-    def dequeue: ASTNode = constructNodes.poll
   }
 }

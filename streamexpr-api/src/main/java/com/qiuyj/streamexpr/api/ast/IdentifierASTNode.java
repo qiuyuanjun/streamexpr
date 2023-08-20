@@ -21,4 +21,9 @@ public record IdentifierASTNode(String identifierName) implements SingleValueAST
     public String getSourceString() {
         return identifierName;
     }
+
+    @Override
+    public String toString() {
+        return identifierName;
+    }
 }

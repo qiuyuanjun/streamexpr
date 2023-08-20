@@ -5,14 +5,31 @@ package com.qiuyj.streamexpr.api.ast;
  * @author qiuyj
  * @since 2023-08-20
  */
-public class FunctionCallASTNode extends AbstractASTNode {
+public class FunctionCallASTNode extends AbstractASTNode implements SingleValueASTNode {
 
-    public FunctionCallASTNode(ASTNode[] functionCallPart) {
+    private final String functionName;
+
+    public FunctionCallASTNode(String functionName, ASTNode[] functionCallPart) {
         super(functionCallPart);
+        this.functionName = functionName;
+    }
+
+    public String getFunctionName() {
+        return functionName;
     }
 
     @Override
     public <T extends ASTNodeVisitor> void visit(T visitor) {
 
+    }
+
+    @Override
+    public Object getValue() {
+        return null;
+    }
+
+    @Override
+    public String getSourceString() {
+        throw new UnsupportedOperationException();
     }
 }
