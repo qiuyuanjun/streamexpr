@@ -5,7 +5,7 @@ package com.qiuyj.streamexpr.api.ast;
  * @author qiuyj
  * @since 2023-08-20
  */
-public class IndexedExpressionASTNode extends AbstractASTNode implements SingleValueASTNode {
+public class IndexedExpressionASTNode extends AbstractASTNode implements SingleValueASTNode, ExpressionASTNode {
 
     public IndexedExpressionASTNode(ASTNode variable, ASTNode index) {
         super(variable, index);
