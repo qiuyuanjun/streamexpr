@@ -4,6 +4,7 @@ import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.Expression
 import com.qiuyj.streamexpr.api.ast.ASTNode
 import com.qiuyj.streamexpr.parser.StreamExpressionParser
+import com.qiuyj.streamexpr.stream.StreamSupport
 import org.springframework.expression.spel.standard.SpelExpression
 
 import java.util.Objects
@@ -26,7 +27,9 @@ class StreamExpression extends Expression {
   private[this] var terminateOp: StreamOp = _
 
   override def evaluate: Any = {
-    null
+    StreamSupport.stream
+      .addIntermediateOps(intermediateOps)
+      .evaluate(terminateOp)
   }
 
   /**
@@ -86,7 +89,7 @@ object StreamExpression {
 
     private[this] var kind: Kind = _
 
-    def initParameter(value: Any, kind: Kind): Unit = {
+    def internalInitParameter(value: Any, kind: Kind): Unit = {
       this.value = value
       this.kind = kind
     }

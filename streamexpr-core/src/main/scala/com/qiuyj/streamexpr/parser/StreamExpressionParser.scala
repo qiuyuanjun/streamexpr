@@ -252,7 +252,7 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
   }
 
   /*
-   * FunctionCall: Identifier ( DOT Identifier )+ ( LPARAN RPARAN | LPARAN Expr ( COMMA Expr )* )
+   * FunctionCall: Identifier ( DOT Identifier )+ ( LPARAN RPARAN | LPARAN Expr ( COMMA Expr )* RPARAN )
    * DOT: "."
    */
   private def maybeFunctionCall: Boolean = {

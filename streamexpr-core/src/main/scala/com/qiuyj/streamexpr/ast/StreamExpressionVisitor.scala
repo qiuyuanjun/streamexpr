@@ -23,7 +23,7 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
         case streamOp: StreamOp =>
           streamOp.internalSetValue(astNode.getValue)
         case parameter: Parameter =>
-          parameter.initParameter(astNode.getValue, StreamExpression.IDENTIFIER)
+          parameter.internalInitParameter(astNode.getValue, StreamExpression.IDENTIFIER)
         case _ =>
           throw new UnsupportedOperationException
       }
@@ -34,7 +34,7 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
     executeVisit[StreamOp, Parameter, StringLiteralASTNode](new VisitAction[StreamOp, Parameter, StringLiteralASTNode] {
 
       override def doVisit(parentObject: StreamOp, currentObject: Parameter, astNode: StringLiteralASTNode): Unit = {
-        currentObject.initParameter(astNode.getValue, StreamExpression.STRING_LITERAL)
+        currentObject.internalInitParameter(astNode.getValue, StreamExpression.STRING_LITERAL)
       }
 
       override def postVisit(parentObject: StreamOp, currentObject: Parameter, astNode: StringLiteralASTNode): Unit = {
@@ -150,7 +150,7 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
         val spelExpr: Expression = new SpelExpressionParser()
           .parseExpression(astNode.getSourceString, ParserContext.TEMPLATE_EXPRESSION)
         // 初始化参数
-        currentObject.initParameter(spelExpr, StreamExpression.SPEL)
+        currentObject.internalInitParameter(spelExpr, StreamExpression.SPEL)
       }
 
       override def postVisit(parentObject: StreamOp, currentObject: Parameter, astNode: SPELASTNode): Unit = {
@@ -163,7 +163,7 @@ class StreamExpressionVisitor extends AbstractObjectStackBasedASTNodeVisitor(new
     executeVisit[StreamOp, Parameter, ContextAttributeASTNode](new VisitAction[StreamOp, Parameter, ContextAttributeASTNode]() {
 
       override def doVisit(parentObject: StreamOp, currentObject: Parameter, astNode: ContextAttributeASTNode): Unit = {
-        currentObject.initParameter(astNode.getSourceString, StreamExpression.CONTEXT_ATTRIBUTE)
+        currentObject.internalInitParameter(astNode.getSourceString, StreamExpression.CONTEXT_ATTRIBUTE)
       }
 
       override def postVisit(parentObject: StreamOp, currentObject: Parameter, astNode: ContextAttributeASTNode): Unit = {
@@ -191,7 +191,7 @@ object StreamExpressionVisitor {
   private[StreamExpressionVisitor] class ParameterASTNodeVisitorAction extends VisitAction[StreamOp, Parameter, ASTNode] {
 
     override def doVisit(parentObject: StreamOp, currentObject: Parameter, astNode: ASTNode): Unit = {
-      currentObject.initParameter(astNode, StreamExpression.AST)
+      currentObject.internalInitParameter(astNode, StreamExpression.AST)
     }
 
     override def postVisit(parentObject: StreamOp, currentObject: Parameter, astNode: ASTNode): Unit = {

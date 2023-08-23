@@ -48,7 +48,7 @@ PrefixExpr: ( PLUS | MINUS | INC | DEC | BANG ) Expr
 
 NestedPropertyAccessor: Identifier ( BAR Identifier )+
 
-FunctionCall: Identifier ( DOT Identifier )+ ( LPARAN RPARAN | LPARAN Expr ( COMMA Expr )* )
+FunctionCall: Identifier ( DOT Identifier )+ ( LPARAN RPARAN | LPARAN Expr ( COMMA Expr )* RPARAN )
 
 DOT: "."
 INC: "++"
