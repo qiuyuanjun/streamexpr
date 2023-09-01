@@ -27,7 +27,7 @@ class StreamExpression extends Expression {
   private[this] var terminateOp: StreamOp = _
 
   override def evaluate: Any = {
-    StreamSupport.stream
+    StreamSupport.stream(Seq.empty)
       .addIntermediateOps(intermediateOps)
       .evaluate(terminateOp)
   }
