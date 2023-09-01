@@ -14,7 +14,7 @@ trait Stream {
    * @return 当前stream流对象
    */
   def addIntermediateOp(intermediateOp: StreamOp): Stream =
-    addIntermediateOps(Seq.apply(intermediateOp))
+    StreamUtils.makeRef(this, intermediateOp)
 
   def addIntermediateOps(intermediateOps: collection.Seq[StreamOp]): Stream
 

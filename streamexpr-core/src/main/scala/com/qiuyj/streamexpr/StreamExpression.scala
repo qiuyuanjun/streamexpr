@@ -4,7 +4,7 @@ import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.Expression
 import com.qiuyj.streamexpr.api.ast.ASTNode
 import com.qiuyj.streamexpr.parser.StreamExpressionParser
-import com.qiuyj.streamexpr.stream.StreamSupport
+import com.qiuyj.streamexpr.stream.StreamUtils
 import org.springframework.expression.spel.standard.SpelExpression
 
 import java.util.Objects
@@ -27,16 +27,18 @@ class StreamExpression extends Expression {
   private[this] var terminateOp: StreamOp = _
 
   override def evaluate: Any = {
-    StreamSupport.stream(Seq.empty)
-      .addIntermediateOps(intermediateOps)
-      .evaluate(terminateOp)
+    var stream = StreamUtils.makeStream(Seq.empty)
+    if (Objects.nonNull(intermediateOps)) {
+      stream = stream.addIntermediateOps(intermediateOps)
+    }
+    stream.evaluate(terminateOp)
   }
 
   /**
    * 增加中间操作或者是终止操作
    * @param streamOp 操作
    */
-  def internalAddStreamOp(streamOp: StreamOp): Unit = {
+  private[streamexpr] def internalAddStreamOp(streamOp: StreamOp): Unit = {
     if (Objects.isNull(terminateOp)) {
       terminateOp = streamOp
     }
@@ -49,6 +51,12 @@ class StreamExpression extends Expression {
       terminateOp = streamOp
     }
   }
+
+  /**
+   * 校验terminateOp字段必须不为null
+   */
+  private[streamexpr] def internalCheck(): Unit =
+    Objects.requireNonNull(terminateOp, "Stream expressions must have at least one termination operation")
 
 }
 
@@ -68,7 +76,7 @@ object StreamExpression {
 
     private[this] var parameters: ArrayBuffer[Parameter] = _
 
-    def internalSetValue(value: AnyRef): Unit = {
+    private[streamexpr] def internalSetValue(value: AnyRef): Unit = {
       if (Objects.isNull(opName)) {
         // opName必须是字符串
         opName = value.toString
@@ -89,7 +97,7 @@ object StreamExpression {
 
     private[this] var kind: Kind = _
 
-    def internalInitParameter(value: Any, kind: Kind): Unit = {
+    private[streamexpr] def internalInitParameter(value: Any, kind: Kind): Unit = {
       this.value = value
       this.kind = kind
     }

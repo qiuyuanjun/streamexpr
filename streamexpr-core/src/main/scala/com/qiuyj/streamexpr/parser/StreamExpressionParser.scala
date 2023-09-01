@@ -27,7 +27,9 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     val visitor = new StreamExpressionVisitor
     lexer.nextToken
     parseStreamExpression.visit[StreamExpressionVisitor](visitor)
-    visitor.getStreamExpression
+    val streamExpression = visitor.getStreamExpression
+    streamExpression.internalCheck()
+    streamExpression
   }
 
   /*
