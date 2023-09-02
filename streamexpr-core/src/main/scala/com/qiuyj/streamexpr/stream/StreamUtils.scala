@@ -3,8 +3,10 @@ package com.qiuyj.streamexpr.stream
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import org.springframework.lang.Nullable
 
+import java.lang.reflect.Constructor
 import java.util
 import java.util.Objects
+import java.util.concurrent.ConcurrentMap
 import scala.jdk.javaapi.CollectionConverters
 
 /**
@@ -15,14 +17,16 @@ import scala.jdk.javaapi.CollectionConverters
 object StreamUtils {
 
   def makeStream(@Nullable source: collection.Seq[_]): Stream =
-    new ReferencePipeline.Head(if (Objects.isNull(source)) Seq.empty else source)
+    new Head(if (Objects.isNull(source)) Seq.empty else source)
 
   def makeStream(@Nullable source: util.List[_]): Stream =
     makeStream(CollectionConverters.asScala(source))
 
-  private[stream] def makeRef(prev: Stream, intermediateOp: StreamOp): ReferencePipeline = {
-    Objects.requireNonNull(prev, "the parameter 'prev' is null")
-    Objects.requireNonNull(intermediateOp, "the parameter 'intermediateOp' is null")
+  private[stream] def makeRef(registerOps: ConcurrentMap[String, Constructor[Any]],
+                              prevStream : Stream,
+                              streamOp: StreamOp): ReferencePipeline = {
+    Objects.requireNonNull(prevStream, "the parameter 'prevStream' is null")
+    Objects.requireNonNull(streamOp, "the parameter 'streamOp' is null")
     null
   }
 }

@@ -6,7 +6,7 @@ import com.qiuyj.streamexpr.StreamExpression.StreamOp
  * @author qiuyj
  * @since 2023-06-29
  */
-trait Stream {
+abstract class Stream {
 
   /**
    * 向stream流中增加中间操作
@@ -14,7 +14,7 @@ trait Stream {
    * @return 当前stream流对象
    */
   def addIntermediateOp(intermediateOp: StreamOp): Stream =
-    StreamUtils.makeRef(this, intermediateOp)
+    IntermediateOps.makeRef(this, intermediateOp)
 
   def addIntermediateOps(intermediateOps: collection.Seq[StreamOp]): Stream
 

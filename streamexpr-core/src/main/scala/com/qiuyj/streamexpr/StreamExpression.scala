@@ -6,6 +6,7 @@ import com.qiuyj.streamexpr.api.ast.ASTNode
 import com.qiuyj.streamexpr.parser.StreamExpressionParser
 import com.qiuyj.streamexpr.stream.StreamUtils
 import org.springframework.expression.spel.standard.SpelExpression
+import org.springframework.lang.{NonNull, Nullable}
 
 import java.util.Objects
 import scala.collection.mutable.ArrayBuffer
@@ -19,11 +20,13 @@ class StreamExpression extends Expression {
   /**
    * 中间操作，0或者n个
    */
+  @Nullable
   private[this] var intermediateOps: ArrayBuffer[StreamOp] = _
 
   /**
    * 终止操作，必须有值
    */
+  @NonNull
   private[this] var terminateOp: StreamOp = _
 
   override def evaluate: Any = {
@@ -72,9 +75,19 @@ object StreamExpression {
 
   class StreamOp {
 
+    /**
+     * 操作名称
+     */
     private[this] var opName: String = _
 
+    /**
+     * 当前操作的参数
+     */
     private[this] var parameters: ArrayBuffer[Parameter] = _
+
+    def getOpName: String = opName
+
+    def getParameters: ArrayBuffer[Parameter] = parameters
 
     private[streamexpr] def internalSetValue(value: AnyRef): Unit = {
       if (Objects.isNull(opName)) {
