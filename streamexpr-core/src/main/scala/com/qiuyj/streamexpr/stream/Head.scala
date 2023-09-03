@@ -1,5 +1,7 @@
 package com.qiuyj.streamexpr.stream
 
+import com.qiuyj.streamexpr.StreamContext
+
 import java.util.Objects
 
 /**
@@ -7,7 +9,8 @@ import java.util.Objects
  * @author qiuyj
  * @since 2023-08-31
  */
-private[stream] class Head(private[this] var source: collection.Seq[_]) extends ReferencePipeline(null) {
+private[stream] class Head(private[this] var source: collection.Seq[_],
+                           private[this] val streamContext: StreamContext) extends ReferencePipeline(null) {
 
   /**
    * 获取要处理的集合数据
@@ -15,14 +18,16 @@ private[stream] class Head(private[this] var source: collection.Seq[_]) extends 
    * @return 要处理的集合数据
    */
   override def getSource: collection.Seq[_] = {
-    val toBeProcessedSource =
+    val toBeProcessedDatasets =
       if (Objects.isNull(source))
         throw new IllegalStateException("Streaming datasets cannot be processed multiple times")
       else
         source
     source = null
-    toBeProcessedSource
+    toBeProcessedDatasets
   }
+
+  override def getStreamContext = streamContext
 
   override def opWrapSink(downstream: Sink): Sink = {
     throw new IllegalStateException("The head node does not support the opWrapSink operation")

@@ -1,5 +1,6 @@
 package com.qiuyj.streamexpr.stream
 
+import com.qiuyj.streamexpr.StreamContext
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 
 import java.util.Objects
@@ -17,28 +18,43 @@ abstract class AbstractStream(private val prevStream: AbstractStream) extends St
     if (Objects.isNull(prevStream)) this
     else prevStream.head
 
-  override def addIntermediateOps(intermediateOps: collection.Seq[StreamOp]): Stream = {
-    if (intermediateOps.size == 1) {
-      addIntermediateOp(intermediateOps.head)
+  override def addIntermediateOp(intermediateOp: StreamOp): Stream =
+    addIntermediateOps(Iterator.single(intermediateOp))
+
+  override def addIntermediateOps(intermediateOps: collection.Seq[StreamOp]): Stream =
+    addIntermediateOps(intermediateOps.iterator)
+
+  private[this] def addIntermediateOps(intermediateOps: Iterator[StreamOp]): Stream = {
+    var stream: Stream = this
+    val streamContext = getStreamContext
+    while (intermediateOps.hasNext) {
+      stream = IntermediateOps.makeRef(stream, intermediateOps.next())
     }
-    else {
-      var stream = this
-      for (intermediateOp <- intermediateOps) {
-        stream = IntermediateOps.makeRef(stream, intermediateOp)
-      }
-      stream
-    }
+    stream
   }
 
-  override def evaluate(terminateOp: StreamOp): Any =
-    TerminateOps.makeRef(terminateOp).evaluate(this)
+  override def evaluate(terminateOp: StreamOp): Any = {
+    TerminateOps.makeRef(terminateOp)
+      .evaluateSequential(this, getSource.iterator)
+  }
 
+  /**
+   * 从头节点中获取要处理的数据集
+   * @note 该方法只能被调用一次
+   * @return 获取到的要处理的数据集
+   */
   def getSource: collection.Seq[_] = head.getSource
 
-  override def buildStreamPipeline(terminateOpSink: TerminateOpSink): Sink = {
-    var streamPipeline: Sink = terminateOpSink
+  /**
+   * 从头结点中获取Stream上下文对象
+   * @return 获取到的Stream上下文对象
+   */
+  def getStreamContext: StreamContext = head.getStreamContext
+
+  override def buildStreamPipeline(terminateSink: TerminateSink): Sink = {
+    var streamPipeline: Sink = terminateSink
     var stream: AbstractStream = this
-    while (stream != stream.head) {
+    while (stream ne stream.head) {
       streamPipeline = stream.opWrapSink(streamPipeline)
       stream = stream.prevStream
     }
@@ -52,11 +68,10 @@ abstract class AbstractStream(private val prevStream: AbstractStream) extends St
    */
   protected def opWrapSink(downstream: Sink): Sink
 
-  override def runStreamPipeline(streamPipeline: Sink): Unit = {
-    val source: Iterator[_] = getSource.iterator
+  override def runStreamPipeline(streamPipeline: Sink, toBeProcessedDatasets: Iterator[_]): Unit = {
     streamPipeline.begin()
-    while (source.hasNext && !streamPipeline.cancelledRequest) {
-      streamPipeline.accept(source.next())
+    while (toBeProcessedDatasets.hasNext && !streamPipeline.cancelledRequest) {
+      streamPipeline.accept(toBeProcessedDatasets.next())
     }
     streamPipeline.end()
   }

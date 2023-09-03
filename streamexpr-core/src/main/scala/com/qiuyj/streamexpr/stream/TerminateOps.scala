@@ -13,9 +13,61 @@ import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
  */
 object TerminateOps {
 
-  private val KNOWN_TERMINATE_OPS: ConcurrentMap[String, Constructor[_ <: TerminateOp]] = new ConcurrentHashMap
+  private[this] val KNOWN_TERMINATE_OPS: ConcurrentMap[String, Constructor[_ <: TerminateOp]] = new ConcurrentHashMap
 
   private[stream] def makeRef(terminateOp: StreamOp): TerminateOp = {
-    null
+    StreamUtils.makeRef(KNOWN_TERMINATE_OPS,
+      terminateOp.getOpName,
+      Array.apply(terminateOp))
+  }
+
+  private def registerTerminateOp(opName: String, terminateOpClass: Class[_ <: TerminateOp]): Unit = {
+    StreamUtils.registerStreamOp(KNOWN_TERMINATE_OPS,
+      opName,
+      terminateOpClass,
+      Array.apply(classOf[StreamOp]))
+  }
+
+  registerTerminateOp("concat", classOf[Concat])
+  registerTerminateOp("toArray", classOf[ToArray])
+
+  private abstract class TerminateOpSink extends TerminateSink with TerminateOp {
+
+    override def evaluateSequential(pipelineHelper: PipelineHelper, toBeProcessedDatasets: Iterator[_]): Any = {
+      // 1. 构建管道
+      val streamPipeline = pipelineHelper.buildStreamPipeline(this)
+      // 2. 将要处理的集合的所有数据依次流入管道处理
+      pipelineHelper.runStreamPipeline(streamPipeline, toBeProcessedDatasets)
+      // 3. 获取管道处理的最终结果
+      get
+    }
+  }
+
+  private class Concat(private[this] val concatOp: StreamOp) extends TerminateOpSink {
+
+    private[this] var builder: StringBuilder = _
+
+    override def begin(): Unit = {
+      // 根据配置创建builder
+    }
+
+    override def get: Any = builder.toString
+
+    override def accept(elem: Any): Unit = builder.append(elem)
+  }
+
+  private class ToArray(private[this] val toArrayOp: StreamOp) extends TerminateOpSink {
+
+    override def begin(): Unit = {
+
+    }
+
+    override def get: Any = {
+
+    }
+
+    override def accept(t: Any): Unit = {
+
+    }
   }
 }

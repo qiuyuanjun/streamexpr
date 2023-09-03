@@ -3,19 +3,24 @@ package com.qiuyj.streamexpr.stream
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 
 /**
+ * stream流式数据处理顶层接口，定义了添加中间操作的api，传入终止操作计算最终结果的api
  * @author qiuyj
  * @since 2023-06-29
  */
-abstract class Stream {
+trait Stream {
 
   /**
    * 向stream流中增加中间操作
    * @param intermediateOp 中间操作
    * @return 当前stream流对象
    */
-  def addIntermediateOp(intermediateOp: StreamOp): Stream =
-    IntermediateOps.makeRef(this, intermediateOp)
+  def addIntermediateOp(intermediateOp: StreamOp): Stream
 
+  /**
+   * 向stream流中增加中间操作（多个）
+   * @param intermediateOps 中间操作（多个）
+   * @return 当前stream流对象
+   */
   def addIntermediateOps(intermediateOps: collection.Seq[StreamOp]): Stream
 
   /**

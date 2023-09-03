@@ -1,6 +1,8 @@
 package com.qiuyj.streamexpr.stream
 
-import java.util.function.Consumer
+import com.qiuyj.streamexpr.StreamContext
+
+import java.util.function.{Consumer, Supplier}
 
 /**
  * Sink表示Stream管道中的一环，一个Stream管道由一个或者多个Sink组成
@@ -21,6 +23,10 @@ abstract class Sink extends Consumer[Any] {
   def end(): Unit = {}
 
   def cancelledRequest: Boolean = false
+}
+
+abstract class ContextualSink(private[this] val streamContext: StreamContext) extends Sink {
+
 }
 
 abstract class ChainedSink(protected val downstream: Sink) extends Sink {
@@ -48,7 +54,8 @@ abstract class ChainedSink(protected val downstream: Sink) extends Sink {
   override def cancelledRequest: Boolean = downstream.cancelledRequest
 }
 
-trait TerminateOpSink extends Sink with TerminateOp {
-
-
+/**
+ * 终止操作管道，相比于中间操作的管道，增加了获取结果的方法（实现了Supplier接口）
+ */
+abstract class TerminateSink extends Sink with Supplier[Any] {
 }
