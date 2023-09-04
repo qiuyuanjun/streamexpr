@@ -1,8 +1,10 @@
 package com.qiuyj.streamexpr.stream
 
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
+import com.qiuyj.streamexpr.api.utils.StringUtils
 
 import java.lang.reflect.Constructor
+import java.util.StringJoiner
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 
 /**
@@ -45,15 +47,21 @@ object TerminateOps {
 
   private class Concat(private[this] val concatOp: StreamOp) extends TerminateOpSink {
 
-    private[this] var builder: StringBuilder = _
+    private[this] var builder: StringJoiner = _
 
     override def begin(): Unit = {
-      // 根据配置创建builder
+      builder = new StringJoiner(
+        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 1), "|"),
+        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 2)),
+        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 3))
+      )
     }
 
     override def get: Any = builder.toString
 
-    override def accept(elem: Any): Unit = builder.append(elem)
+    override def accept(elem: Any): Unit =
+      builder.add(StreamUtils.getParameterValueAsString(elem, concatOp))
+
   }
 
   private class ToArray(private[this] val toArrayOp: StreamOp) extends TerminateOpSink {

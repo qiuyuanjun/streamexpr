@@ -215,8 +215,10 @@ class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[Stre
     }
     else if (maybeArrayExpr)
       new ArrayExpressionASTNode(constructNodeHelper.makeArray)
-    else
+    else {
+      parseError("Un expect primary expression")
       null
+    }
   }
 
   /*

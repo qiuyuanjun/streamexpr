@@ -1,6 +1,7 @@
 package com.qiuyj.streamexpr.stream
 
 import com.qiuyj.streamexpr.StreamContext
+import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.utils.StringUtils
 import org.springframework.lang.{NonNull, Nullable}
 
@@ -17,6 +18,31 @@ import scala.util.Try
  * @since 2023-08-31
  */
 object StreamUtils {
+
+  def getParameterValue(valueContext: Any, streamOp: StreamOp): Any =
+    getParameterValue(valueContext, streamOp, 0)
+
+  def getParameterValue(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Any = {
+    safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
+      .orNull
+  }
+
+  def getParameterValueAsString(valueContext: Any, streamOp: StreamOp): String =
+    getParameterValueAsString(valueContext, streamOp, 0)
+
+  def getParameterValueAsString(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): String = {
+    safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
+      .map(_.toString)
+      .orNull
+  }
+
+  private[this] def safeGetParameterValueAt(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Option[Any] = {
+    val parameters = streamOp.getParameters
+    if (parameterIndex < 0 || parameterIndex > parameters.size - 1)
+      None
+    else
+      Some(parameters(parameterIndex)).map(_.getValue(valueContext))
+  }
 
   def makeStream(@Nullable source: collection.Seq[_]): Stream =
     new Head(if (Objects.isNull(source)) Seq.empty else source, new StreamContext)

@@ -60,14 +60,18 @@ object IntermediateOps {
     override protected def opWrapSink(downstream: Sink): Sink = {
       new ChainedSink(downstream) {
 
+        /**
+         * 分割符，如果没有填，那么默认是按照竖线分割
+         */
         private[this] var separator: String = _
 
         override protected def doBegin(): Unit = {
-
+          val configuredSeparator = StreamUtils.getParameterValueAsString(null, splitOp, 1)
+          separator = StringUtils.defaultIfEmpty(configuredSeparator, "|")
         }
 
         override def accept(elem: Any): Unit = {
-          val splitResult = StringUtils.split(elem, separator)
+          val splitResult = StringUtils.split(StreamUtils.getParameterValue(elem, splitOp), separator)
           if (Objects.isNull(splitResult)) {
             downstream.accept(elem)
           }

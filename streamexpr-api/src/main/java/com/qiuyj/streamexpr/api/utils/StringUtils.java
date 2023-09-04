@@ -27,4 +27,12 @@ public abstract class StringUtils {
         }
         return null;
     }
+
+    public static String defaultIfEmpty(String s, String defaultStr) {
+        return isEmpty(s) ? defaultStr : s;
+    }
+
+    public static String defaultIfEmpty(String s) {
+        return defaultIfEmpty(s, "");
+    }
 }
