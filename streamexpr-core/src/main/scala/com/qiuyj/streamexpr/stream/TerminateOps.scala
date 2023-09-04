@@ -51,7 +51,7 @@ object TerminateOps {
 
     override def begin(): Unit = {
       builder = new StringJoiner(
-        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 1), "|"),
+        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 1)),
         StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 2)),
         StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 3))
       )
