@@ -19,9 +19,22 @@ import scala.util.Try
  */
 object StreamUtils {
 
+  /**
+   * 获取给定操作中下标为0的参数对应的值
+   * @param valueContext 上下文
+   * @param streamOp 操作StreamOp对象，里面可以获取所有的参数列表
+   * @return 下标为0的参数对应的值
+   */
   def getParameterValue(valueContext: Any, streamOp: StreamOp): Any =
     getParameterValue(valueContext, streamOp, 0)
 
+  /**
+   * 获取给定操作中给定下标的参数对应的值
+   * @param valueContext 上下文
+   * @param streamOp 操作StreamOp对象，里面可以获取所有的参数列表
+   * @param parameterIndex 要获取的参数的下标
+   * @return 对应下标参数对应的值
+   */
   def getParameterValue(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Any = {
     safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
       .orNull
@@ -60,19 +73,15 @@ object StreamUtils {
    */
   private[stream] def makeRef[A](registerStreamOps: ConcurrentMap[String, Constructor[_ <: A]],
                                  opName: String,
-                                 parameters: Array[_]): A = {
+                                 parameters: Array[Any]): A = {
     val constructor = registerStreamOps.get(opName)
     if (Objects.isNull(constructor)) {
       throw new IllegalStateException(s"Unregistered stream op: $opName")
     }
-    val tryValue = Try(constructor.newInstance(parameters: _*))
-    if (tryValue.isFailure) {
-      throw new IllegalStateException(s"Unable to initialize the stream op: $opName object",
-        tryValue.failed.get)
-    }
-    else {
-      tryValue.get
-    }
+    Try(constructor.newInstance(parameters)).fold(
+      e => throw new IllegalStateException(s"Unable to initialize the stream op: $opName object", e),
+      identity
+    )
   }
 
   /**
@@ -89,12 +98,10 @@ object StreamUtils {
                                           @NonNull parameterTypes: Array[Class[_]]): Unit = {
     Objects.requireNonNull(opClass, "stream op class is null")
     assert(StringUtils.isNotEmpty(opName), "stream op name is empty")
-    val tryGetConstructor: Try[Constructor[_ <: A]] = Try(opClass.getDeclaredConstructor(parameterTypes: _*))
-    if (tryGetConstructor.isFailure) {
-      throw new IllegalStateException("Unable to register stream op because get the stream op's constructor exception",
-        tryGetConstructor.failed.get)
-    }
-    val constructor = tryGetConstructor.get
+    val constructor = Try(opClass.getDeclaredConstructor(parameterTypes: _*)).fold(
+      e => throw new IllegalStateException("Unable to register stream op because get the stream op's constructor exception", e),
+      identity
+    )
     if (Objects.nonNull(streamOpContainer.putIfAbsent(opName, constructor))) {
       throw new IllegalStateException(s"Repeat registration stream op: $opName")
     }
