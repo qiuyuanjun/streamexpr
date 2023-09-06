@@ -5,8 +5,8 @@ import com.qiuyj.streamexpr.api.utils.StringUtils
 
 import java.lang.reflect.Constructor
 import java.util
-import java.util.{Objects, StringJoiner}
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
+import java.util.{Objects, StringJoiner}
 import scala.util.Try
 
 /**
@@ -32,8 +32,10 @@ object TerminateOps {
       Array.apply(classOf[StreamOp]))
   }
 
-  registerTerminateOp("concat", classOf[Concat])
-  registerTerminateOp("toArray", classOf[ToArray])
+  registerTerminateOp("concat",    classOf[Concat])
+  registerTerminateOp("toArray",   classOf[ToArray])
+  registerTerminateOp("toMap",     classOf[ToMap])
+  registerTerminateOp("findFirst", classOf[FindFirst])
 
   private abstract class TerminateOpSink extends TerminateSink with TerminateOp {
 
@@ -86,11 +88,11 @@ object TerminateOps {
 
   private class ToArray(private[this] val toArrayOp: StreamOp) extends CancellableTerminateOpSink {
 
-    private[this] var array: util.List[Any] = _
+    private[this] var arrayList: util.List[Any] = _
 
     override def begin(): Unit = {
       val len = StreamUtils.getParameterValueAsString(null, toArrayOp, 1)
-      array = if (StringUtils.isEmpty(len)) {
+      arrayList = if (StringUtils.isEmpty(len)) {
         new util.ArrayList[Any]
       }
       else {
@@ -101,19 +103,24 @@ object TerminateOps {
       }
     }
 
-    override def get: Any = array.toArray
+    override def get: Any = arrayList.toArray
 
     override def accept(elem: Any): Unit = {
-      if (!array.add(StreamUtils.getParameterValue(elem, toArrayOp))) {
-        cancel()
+      arrayList.add(StreamUtils.getParameterValue(elem, toArrayOp))
+      arrayList match {
+        case array: FixedSizeArrayList if array.isFull => cancel()
+        case _ =>
       }
     }
   }
 
-  private[this] class FixedSizeArrayList(private[this] val arraySize: Int) extends util.AbstractList[Any] {
+  private class FixedSizeArrayList(private[this] val arraySize: Int) extends util.AbstractList[Any] {
 
-    private[this] val array: Array[Any] = new Array[Any](arraySize)
+    private[this] val array = new Array[Any](arraySize)
 
+    /**
+     * 存储下一个添加数据的下标
+     */
     private[this] var index: Int = _
 
     override def get(index: Int): Any = {
@@ -124,7 +131,7 @@ object TerminateOps {
     override def size(): Int = index
 
     override def add(e: Any): Boolean = {
-      if (index >= arraySize) {
+      if (isFull) {
         false
       }
       else {
@@ -135,5 +142,38 @@ object TerminateOps {
     }
 
     override def toArray: Array[Any] = array
+
+    /**
+     * 判断当前数组是否满了
+     * @return 如果满了，返回true，否则返回false
+     */
+    private[TerminateOps] def isFull: Boolean = index >= arraySize
+  }
+
+  private class ToMap(private[this] val toMapOp: StreamOp) extends TerminateOpSink {
+
+    private[this] var map: util.Map[Any, Any] = _
+
+    override def begin(): Unit = map = new util.HashMap[Any, Any]
+
+    override def accept(elem: Any): Unit = {
+      val key = StreamUtils.getParameterValue(elem, toMapOp)
+      val value = StreamUtils.getParameterValue(elem, toMapOp, 1)
+      map.put(key, value)
+    }
+
+    override def get: Any = map
+  }
+
+  private class FindFirst(private[this] val findFirstOp: StreamOp) extends CancellableTerminateOpSink {
+
+    private var firstValue: Any = _
+
+    override def get: Any = firstValue
+
+    override def accept(elem: Any): Unit = {
+      firstValue = StreamUtils.getParameterValue(elem, findFirstOp)
+      cancel()
+    }
   }
 }

@@ -109,4 +109,24 @@ object StreamUtils {
       constructor.trySetAccessible
     }
   }
+
+  implicit private[stream] class EitherThen[A](private[this] val value: Either[A, A]) {
+
+    def mergeThen[B](fn: A => Either[B, B]): EitherThen[B] = {
+      fn(get)
+    }
+
+    def `then`[B](fn: Either[A, A] => Either[B, B]): EitherThen[B] = {
+      fn(value)
+    }
+
+    def get: A = value.merge
+  }
+
+  private[stream] object EitherThan {
+
+    def apply[A](test: Boolean, right: => A, left: => A): EitherThen[A] = {
+      new EitherThen(Either.cond(test, right, left))
+    }
+  }
 }
