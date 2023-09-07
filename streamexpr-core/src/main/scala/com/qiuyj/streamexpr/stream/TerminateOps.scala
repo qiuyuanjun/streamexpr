@@ -167,13 +167,25 @@ object TerminateOps {
 
   private class FindFirst(private[this] val findFirstOp: StreamOp) extends CancellableTerminateOpSink {
 
-    private var firstValue: Any = _
+    private[this] var firstValue: Any = _
+
+    /**
+     * 是否不为null的标识，默认允许为null
+     */
+    private[this] var nonNull: Boolean = _
+
+    override def begin(): Unit = {
+      val optionalNonNull = StreamUtils.getParameterValue(null, findFirstOp, 1)
+      nonNull = Objects.isNull(optionalNonNull) || optionalNonNull.asInstanceOf[Boolean]
+    }
 
     override def get: Any = firstValue
 
     override def accept(elem: Any): Unit = {
       firstValue = StreamUtils.getParameterValue(elem, findFirstOp)
-      cancel()
+      if (!nonNull || Objects.nonNull(firstValue)) {
+        cancel()
+      }
     }
   }
 }

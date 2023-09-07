@@ -2,7 +2,7 @@ package com.qiuyj.streamexpr.stream
 
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.utils.StringUtils
-import com.qiuyj.streamexpr.stream.StreamUtils.EitherThan
+import com.qiuyj.streamexpr.stream.StreamUtils.EitherThen
 
 import java.lang.reflect.Constructor
 import java.util
@@ -154,7 +154,7 @@ object IntermediateOps {
           val order = StreamUtils.getParameterValueAsString(null, sortOp, 1)
           // null值的顺序，是否是在最后面，默认是最后面，true表示最后面，false表示最前面
           val nullsOrder = StreamUtils.getParameterValue(null, sortOp, 2)
-          EitherThan(StringUtils.isEmpty(order) || "ASC".equalsIgnoreCase(order), Comparator.naturalOrder[Comparable[Any]], Comparator.reverseOrder[Comparable[Any]])
+          EitherThen(StringUtils.isEmpty(order) || "ASC".equalsIgnoreCase(order), Comparator.naturalOrder[Comparable[Any]], Comparator.reverseOrder[Comparable[Any]])
             .mergeThen(prevValue => Either.cond(Objects.isNull(nullsOrder) || nullsOrder.asInstanceOf[Boolean], Comparator.nullsLast(prevValue), Comparator.nullsFirst(prevValue)))
             .get
         }

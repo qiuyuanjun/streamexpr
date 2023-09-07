@@ -123,10 +123,10 @@ object StreamUtils {
     def get: A = value.merge
   }
 
-  private[stream] object EitherThan {
+  private[stream] object EitherThen {
 
     def apply[A](test: Boolean, right: => A, left: => A): EitherThen[A] = {
-      new EitherThen(Either.cond(test, right, left))
+      Either.cond(test, right, left)
     }
   }
 }
