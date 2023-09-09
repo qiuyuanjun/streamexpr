@@ -10,7 +10,9 @@ import java.util.function.{Consumer, Supplier}
  * @author qiuyj
  * @since 2023-09-02
  */
-abstract class Sink extends Consumer[Any] with StreamContextCapable {
+abstract class Sink
+    extends Consumer[Any]
+    with StreamContextCapable {
 
   /**
    * 执行数据消费之前的动作

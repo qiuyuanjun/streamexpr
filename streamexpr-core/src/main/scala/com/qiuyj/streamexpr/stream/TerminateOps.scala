@@ -122,7 +122,8 @@ object TerminateOps {
     }
   }
 
-  private class FixedSizeArrayList(private[this] val arraySize: Int) extends util.AbstractList[Any] {
+  private class FixedSizeArrayList(private[this] val arraySize: Int)
+      extends util.AbstractList[Any] {
 
     private[this] val array = new Array[Any](arraySize)
 

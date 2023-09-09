@@ -10,7 +10,9 @@ import java.util.Objects
  * @author qiuyj
  * @since 2023-08-23
  */
-abstract class AbstractStream(private val prevStream: AbstractStream) extends Stream with PipelineHelper {
+abstract class AbstractStream(private val prevStream: AbstractStream)
+    extends Stream
+    with PipelineHelper {
 
   /**
    * 用于存储头结点（头结点中存储了要处理的数据信息）
