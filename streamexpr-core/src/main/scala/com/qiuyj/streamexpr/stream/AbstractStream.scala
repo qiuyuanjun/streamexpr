@@ -6,6 +6,7 @@ import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import java.util.Objects
 
 /**
+ * stream流抽象实现
  * @author qiuyj
  * @since 2023-08-23
  */
@@ -18,6 +19,12 @@ abstract class AbstractStream(private val prevStream: AbstractStream) extends St
     if (Objects.isNull(prevStream)) this
     else prevStream.head
 
+  /**
+   * 从头结点中获取Stream上下文对象
+   * @return 获取到的Stream上下文对象
+   */
+  override def getStreamContext: StreamContext = head.getStreamContext
+
   override def addIntermediateOp(intermediateOp: StreamOp): Stream =
     addIntermediateOps(Iterator.single(intermediateOp))
 
@@ -26,7 +33,6 @@ abstract class AbstractStream(private val prevStream: AbstractStream) extends St
 
   private[this] def addIntermediateOps(intermediateOps: Iterator[StreamOp]): Stream = {
     var stream: Stream = this
-    val streamContext = getStreamContext
     while (intermediateOps.hasNext) {
       stream = IntermediateOps.makeRef(stream, intermediateOps.next())
     }
@@ -34,7 +40,7 @@ abstract class AbstractStream(private val prevStream: AbstractStream) extends St
   }
 
   override def evaluate(terminateOp: StreamOp): Any = {
-    TerminateOps.makeRef(terminateOp)
+    TerminateOps.makeRef(getStreamContext, terminateOp)
       .evaluateSequential(this, getSource.iterator)
   }
 
@@ -44,12 +50,6 @@ abstract class AbstractStream(private val prevStream: AbstractStream) extends St
    * @return 获取到的要处理的数据集
    */
   def getSource: collection.Seq[_] = head.getSource
-
-  /**
-   * 从头结点中获取Stream上下文对象
-   * @return 获取到的Stream上下文对象
-   */
-  def getStreamContext: StreamContext = head.getStreamContext
 
   override def buildStreamPipeline(terminateSink: TerminateSink): Sink = {
     var streamPipeline: Sink = terminateSink

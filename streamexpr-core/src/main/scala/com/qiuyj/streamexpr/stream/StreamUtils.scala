@@ -78,7 +78,7 @@ object StreamUtils {
     if (Objects.isNull(constructor)) {
       throw new IllegalStateException(s"Unregistered stream op: $opName")
     }
-    Try(constructor.newInstance(parameters)).fold(
+    Try(constructor.newInstance(parameters: _*)).fold(
       e => throw new IllegalStateException(s"Unable to initialize the stream op: $opName object", e),
       identity
     )

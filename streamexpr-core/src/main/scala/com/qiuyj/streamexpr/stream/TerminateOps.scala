@@ -1,5 +1,6 @@
 package com.qiuyj.streamexpr.stream
 
+import com.qiuyj.streamexpr.StreamContext
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.utils.StringUtils
 
@@ -19,17 +20,17 @@ object TerminateOps {
 
   private[this] val KNOWN_TERMINATE_OPS: ConcurrentMap[String, Constructor[_ <: TerminateOp]] = new ConcurrentHashMap
 
-  private[stream] def makeRef(terminateOp: StreamOp): TerminateOp = {
+  private[stream] def makeRef(streamContext: StreamContext, terminateOp: StreamOp): TerminateOp = {
     StreamUtils.makeRef(KNOWN_TERMINATE_OPS,
       terminateOp.getOpName,
-      Array.apply(terminateOp))
+      Array.apply(streamContext, terminateOp))
   }
 
   private def registerTerminateOp(opName: String, terminateOpClass: Class[_ <: TerminateOp]): Unit = {
     StreamUtils.registerStreamOp(KNOWN_TERMINATE_OPS,
       opName,
       terminateOpClass,
-      Array.apply(classOf[StreamOp]))
+      Array.apply(classOf[StreamContext], classOf[StreamOp]))
   }
 
   registerTerminateOp("concat",    classOf[Concat])
@@ -37,7 +38,9 @@ object TerminateOps {
   registerTerminateOp("toMap",     classOf[ToMap])
   registerTerminateOp("findFirst", classOf[FindFirst])
 
-  private abstract class TerminateOpSink extends TerminateSink with TerminateOp {
+  private abstract class TerminateOpSink(private[this] val streamContext: StreamContext)
+      extends TerminateSink(streamContext)
+      with TerminateOp {
 
     override def evaluateSequential(pipelineHelper: PipelineHelper, toBeProcessedDatasets: Iterator[_]): Any = {
       // 1. 构建管道
@@ -52,7 +55,8 @@ object TerminateOps {
   /**
    * 带有取消循环功能的终止操作Sink管道
    */
-  private abstract class CancellableTerminateOpSink extends TerminateOpSink {
+  private abstract class CancellableTerminateOpSink(private[this] val streamContext: StreamContext)
+      extends TerminateOpSink(streamContext) {
 
     /**
      * 是否需要取消循环标志
@@ -67,7 +71,9 @@ object TerminateOps {
     override def cancelledRequest: Boolean = cancelled
   }
 
-  private class Concat(private[this] val concatOp: StreamOp) extends TerminateOpSink {
+  private class Concat(private[this] val streamContext: StreamContext,
+                       private[this] val concatOp: StreamOp)
+      extends TerminateOpSink(streamContext) {
 
     private[this] var builder: StringJoiner = _
 
@@ -86,7 +92,9 @@ object TerminateOps {
 
   }
 
-  private class ToArray(private[this] val toArrayOp: StreamOp) extends CancellableTerminateOpSink {
+  private class ToArray(private[this] val streamContext: StreamContext,
+                        private[this] val toArrayOp: StreamOp)
+      extends CancellableTerminateOpSink(streamContext) {
 
     private[this] var arrayList: util.List[Any] = _
 
@@ -150,7 +158,9 @@ object TerminateOps {
     private[TerminateOps] def isFull: Boolean = index >= arraySize
   }
 
-  private class ToMap(private[this] val toMapOp: StreamOp) extends TerminateOpSink {
+  private class ToMap(private[this] val streamContext: StreamContext,
+                      private[this] val toMapOp: StreamOp)
+      extends TerminateOpSink(streamContext) {
 
     private[this] var map: util.Map[Any, Any] = _
 
@@ -165,7 +175,9 @@ object TerminateOps {
     override def get: Any = map
   }
 
-  private class FindFirst(private[this] val findFirstOp: StreamOp) extends CancellableTerminateOpSink {
+  private class FindFirst(private[this] val streamContext: StreamContext,
+                          private[this] val findFirstOp: StreamOp)
+      extends CancellableTerminateOpSink(streamContext) {
 
     private[this] var firstValue: Any = _
 

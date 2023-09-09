@@ -7,7 +7,7 @@ import com.qiuyj.streamexpr.StreamExpression.StreamOp
  * @author qiuyj
  * @since 2023-06-29
  */
-trait Stream {
+trait Stream extends StreamContextCapable {
 
   /**
    * 向stream流中增加中间操作
