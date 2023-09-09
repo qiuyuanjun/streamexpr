@@ -52,7 +52,14 @@ object IntermediateOps {
       new ChainedSink(downstream) {
 
         override def accept(elem: Any): Unit = {
-
+          val filterCondition = StreamUtils.getParameterValue(elem, filterOp)
+          filterCondition match {
+            case result: Boolean =>
+              if (result) {
+                downstream.accept(elem)
+              }
+            case _ => throw new IllegalStateException("Boolean result expression expect!")
+          }
         }
       }
     }
