@@ -40,25 +40,24 @@ object IntermediateOps {
       Array.apply(classOf[Stream], classOf[StreamOp]))
   }
 
-  registerIntermediateOp("split",    classOf[Split])
-  registerIntermediateOp("filter",   classOf[Filter])
-  registerIntermediateOp("distinct", classOf[Distinct])
-  registerIntermediateOp("sort",     classOf[Sort])
+  registerIntermediateOp("split",     classOf[Split])
+  registerIntermediateOp("filter",    classOf[Filter])
+  registerIntermediateOp("distinct",  classOf[Distinct])
+  registerIntermediateOp("sort",      classOf[Sort])
+  registerIntermediateOp("skip",      classOf[Skip])
+  registerIntermediateOp("dropWhile", classOf[DropWhile])
+  registerIntermediateOp("takeWhile", classOf[TakeWhile])
 
   private class Filter(private[this] val prevStream: Stream,
-                       private[this] val filterOp: StreamOp) extends ReferencePipeline(prevStream) {
+                       private[this] val filterOp: StreamOp)
+      extends ReferencePipeline(prevStream) {
 
     override protected def opWrapSink(downstream: Sink): Sink = {
       new ChainedSink(downstream) {
 
         override def accept(elem: Any): Unit = {
-          val filterCondition = StreamUtils.getParameterValue(elem, filterOp)
-          filterCondition match {
-            case result: Boolean =>
-              if (result) {
-                downstream.accept(elem)
-              }
-            case _ => throw new IllegalStateException("Boolean result expression expect!")
+          if (StreamUtils.getParameterValueAsBooleanNonNull(elem, filterOp)) {
+            downstream.accept(elem)
           }
         }
       }
@@ -66,7 +65,8 @@ object IntermediateOps {
   }
 
   private class Split(private[this] val prevStream: Stream,
-                      private[this] val splitOp: StreamOp) extends ReferencePipeline(prevStream) {
+                      private[this] val splitOp: StreamOp)
+      extends ReferencePipeline(prevStream) {
 
     override protected def opWrapSink(downstream: Sink): Sink = {
       new ChainedSink(downstream) {
@@ -104,7 +104,9 @@ object IntermediateOps {
    * 表示按照DISTINCT_FIELD字段值进行去重
    */
   private class Distinct(private[this] val prevStream: Stream,
-                         private[this] val distinctOp: StreamOp) extends ReferencePipeline(prevStream) {
+                         private[this] val distinctOp: StreamOp)
+      extends ReferencePipeline(prevStream) {
+
     override protected def opWrapSink(downstream: Sink): Sink = {
       new ChainedSink(downstream) {
 
@@ -128,7 +130,8 @@ object IntermediateOps {
    * 按照SORT_FIELD字段倒叙排序，并且null值放在最前面
    */
   private class Sort(private[this] val prevStream: Stream,
-                     private[this] val sortOp: StreamOp) extends ReferencePipeline(prevStream) {
+                     private[this] val sortOp: StreamOp)
+      extends ReferencePipeline(prevStream) {
 
     override protected def opWrapSink(downstream: Sink): Sink = {
       new ChainedSink(downstream) {
@@ -164,6 +167,89 @@ object IntermediateOps {
           EitherThen(StringUtils.isEmpty(order) || "ASC".equalsIgnoreCase(order), Comparator.naturalOrder[Comparable[Any]], Comparator.reverseOrder[Comparable[Any]])
             .mergeThen(prevValue => Either.cond(Objects.isNull(nullsOrder) || nullsOrder.asInstanceOf[Boolean], Comparator.nullsLast(prevValue), Comparator.nullsFirst(prevValue)))
             .get
+        }
+      }
+    }
+  }
+
+  /**
+   * skip(10)，表示跳过最开始的10个元素
+   */
+  private class Skip(private[this] val prevStream: Stream,
+                     private[this] val skipOp: StreamOp)
+      extends ReferencePipeline(prevStream) {
+
+    override protected def opWrapSink(downstream: Sink): Sink = {
+
+      new ChainedSink(downstream) {
+
+        private[this] var skipN: Int = _
+
+        override protected def doBegin(): Unit = {
+          // 要求参数必须是数字字面量
+          skipN = Objects.requireNonNull(
+              StreamUtils.getParameterValue(null, skipOp),
+              "The first parameter of skip op cannot be null"
+          ).asInstanceOf[Int]
+          StreamUtils.assert(skipN >= 0, "The first parameter of skip op cannot be less than 0")
+        }
+
+        override def accept(elem: Any): Unit = {
+          if (skipN < 0) {
+            downstream.accept(elem)
+          }
+          else {
+            skipN -= 1
+          }
+        }
+      }
+    }
+  }
+
+  private class DropWhile(private[this] val prevStream: Stream,
+                          private[this] val dropWhileOp: StreamOp)
+      extends ReferencePipeline(prevStream) {
+
+    override protected def opWrapSink(downstream: Sink): Sink = {
+      new ChainedSink(downstream) {
+
+        private[this] var takeElement: Boolean = _
+
+        override def accept(elem: Any): Unit = {
+          if (takeElement || StreamUtils.getParameterValueAsBooleanNonNull(elem, dropWhileOp)) {
+            takeElement = true
+            downstream.accept(elem)
+          }
+        }
+      }
+    }
+  }
+
+  private class TakeWhile(private[this] val prevStream: Stream,
+                          private[this] val takeWhileOp: StreamOp)
+      extends ReferencePipeline(prevStream) {
+
+    override protected def opWrapSink(downstream: Sink): Sink = {
+      new ChainedSink(downstream) {
+
+        private[this] var takeElement: Boolean = true
+
+        override def accept(elem: Any): Unit = {
+//           if (takeElement
+//               && (takeElement = StreamUtils.getParameterValueAsBooleanNonNull(elem, takeWhileOp))) {
+//             downstream.accept(elem)
+//           }
+          // scala不支持上面这种写法
+          if (takeElement && StreamUtils.getParameterValueAsBooleanNonNull(elem, takeWhileOp)) {
+            downstream.accept(elem)
+          }
+          else {
+            takeElement = false
+          }
+        }
+
+        override def cancelledRequest: Boolean = {
+          !takeElement || super.cancelledRequest
         }
       }
     }

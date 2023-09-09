@@ -10,7 +10,8 @@ import java.util.Objects
  * @since 2023-08-31
  */
 private[stream] class Head(private[this] var source: collection.Seq[_],
-                           private[this] val streamContext: StreamContext) extends ReferencePipeline(null) {
+                           private[this] val streamContext: StreamContext)
+    extends ReferencePipeline(null) {
 
   /**
    * 获取要处理的集合数据

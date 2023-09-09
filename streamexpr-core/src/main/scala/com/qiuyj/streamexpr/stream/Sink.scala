@@ -26,7 +26,7 @@ abstract class Sink extends Consumer[Any] with StreamContextCapable {
 }
 
 abstract class ChainedSink(protected val downstream: Sink)
-  extends Sink {
+    extends Sink {
 
   override def begin(): Unit = {
     doBegin()

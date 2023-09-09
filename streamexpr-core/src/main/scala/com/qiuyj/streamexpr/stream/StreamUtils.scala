@@ -22,7 +22,7 @@ object StreamUtils {
   /**
    * 获取给定操作中下标为0的参数对应的值
    * @param valueContext 上下文
-   * @param streamOp 操作StreamOp对象，里面可以获取所有的参数列表
+   * @param streamOp     操作StreamOp对象，里面可以获取所有的参数列表
    * @return 下标为0的参数对应的值
    */
   def getParameterValue(valueContext: Any, streamOp: StreamOp): Any =
@@ -30,8 +30,8 @@ object StreamUtils {
 
   /**
    * 获取给定操作中给定下标的参数对应的值
-   * @param valueContext 上下文
-   * @param streamOp 操作StreamOp对象，里面可以获取所有的参数列表
+   * @param valueContext   上下文
+   * @param streamOp       操作StreamOp对象，里面可以获取所有的参数列表
    * @param parameterIndex 要获取的参数的下标
    * @return 对应下标参数对应的值
    */
@@ -47,6 +47,34 @@ object StreamUtils {
     safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
       .map(_.toString)
       .orNull
+  }
+
+  /**
+   * 获取给定操作中下标为0的参数对应的值（boolean类型，不为null）
+   * @param valueContext 上下文
+   * @param streamOp     操作StreamOp对象，里面可以获取所有的参数列表
+   * @return 对应参数的值（boolean类型）
+   */
+  @NonNull
+  def getParameterValueAsBooleanNonNull(valueContext: Any, streamOp: StreamOp): Boolean = {
+    getParameterValueAsBooleanNonNull(valueContext, streamOp, 0)
+  }
+
+  /**
+   * 获取给定操作中给定下标的参数对应的值（boolean类型，不为null）
+   * @param valueContext   上下文
+   * @param streamOp       操作StreamOp对象，里面可以获取所有的参数列表
+   * @param parameterIndex 要获取的参数的下标
+   * @return 对应参数的值（boolean类型）
+   */
+  @NonNull
+  def getParameterValueAsBooleanNonNull(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Boolean = {
+    safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
+      .map {
+        case booleanValue: Boolean => booleanValue
+        case _ => throw new IllegalStateException("Boolean result expression expect!")
+      }
+      .getOrElse(throw new IllegalStateException("Boolean result expression expect!"))
   }
 
   private[this] def safeGetParameterValueAt(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Option[Any] = {
@@ -66,8 +94,8 @@ object StreamUtils {
   /**
    * 创建stream操作实例
    * @param registerStreamOps 所有注册的stream操作容器
-   * @param opName stream操作名
-   * @param parameters 构造函数的参数
+   * @param opName            stream操作名
+   * @param parameters        构造函数的参数
    * @tparam A stream操作对象
    * @return stream操作对象
    */
@@ -87,9 +115,9 @@ object StreamUtils {
   /**
    * 注册stream流操作（中间操作和终止操作）
    * @param streamOpContainer 存储stream流操作的容器
-   * @param opName 操作名称
-   * @param opClass 操作的Class对象
-   * @param parameterTypes 操作构造函数的参数类型
+   * @param opName            操作名称
+   * @param opClass           操作的Class对象
+   * @param parameterTypes    操作构造函数的参数类型
    * @tparam A 操作类型
    */
   private[stream] def registerStreamOp[A](@NonNull streamOpContainer: ConcurrentMap[String, Constructor[_ <: A]],
@@ -127,6 +155,17 @@ object StreamUtils {
 
     def apply[A](test: Boolean, right: => A, left: => A): EitherThen[A] = {
       Either.cond(test, right, left)
+    }
+  }
+
+  /**
+   * 断言
+   * @param condition    断言条件
+   * @param errorMessage 如果断言条件是false，那么抛出异常，该字段用于获取异常信息
+   */
+  private[stream] def assert(condition: Boolean, errorMessage: => String): Unit = {
+    if (!condition) {
+      throw new IllegalStateException(errorMessage)
     }
   }
 }

@@ -17,6 +17,7 @@ trait PipelineHelper {
   /**
    * 运行给定的管道，并计算出最终的结果
    * @param streamPipeline 需要运行的管道
+   * @param toBeProcessedDatasets 需要被处理的数据迭代器
    */
   def runStreamPipeline(streamPipeline: Sink, toBeProcessedDatasets: Iterator[_]): Unit
 }
