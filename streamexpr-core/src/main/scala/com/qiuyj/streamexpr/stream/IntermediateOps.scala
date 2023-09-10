@@ -1,5 +1,6 @@
 package com.qiuyj.streamexpr.stream
 
+import com.qiuyj.streamexpr.StreamContext
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.utils.StringUtils
 import com.qiuyj.streamexpr.stream.StreamUtils.EitherThen
@@ -55,9 +56,9 @@ object IntermediateOps {
     override protected def opWrapSink(downstream: Sink): Sink = {
       new ChainedSink(downstream) {
 
-        override def accept(elem: Any): Unit = {
-          if (StreamUtils.getParameterValueAsBooleanNonNull(elem, filterOp)) {
-            downstream.accept(elem)
+        override def accept(elem: Any, streamContext: StreamContext): Unit = {
+          if (StreamUtils.getParameterValueAsBooleanNonNull(streamContext, elem, filterOp)) {
+            downstream.accept(elem, streamContext)
           }
         }
       }
@@ -76,21 +77,21 @@ object IntermediateOps {
          */
         private[this] var separator: String = _
 
-        override protected def doBegin(): Unit = {
-          val configuredSeparator = StreamUtils.getParameterValueAsString(null, splitOp, 1)
+        override protected def doBegin(streamContext: StreamContext): Unit = {
+          val configuredSeparator = StreamUtils.getParameterValueAsString(streamContext, null, splitOp, 1)
           separator = StringUtils.defaultIfEmpty(configuredSeparator, "|")
         }
 
-        override def accept(elem: Any): Unit = {
-          val splitResult = StringUtils.split(StreamUtils.getParameterValue(elem, splitOp), separator)
+        override def accept(elem: Any, streamContext: StreamContext): Unit = {
+          val splitResult = StringUtils.split(StreamUtils.getParameterValue(streamContext, elem, splitOp), separator)
           if (Objects.isNull(splitResult)) {
-            downstream.accept(elem)
+            downstream.accept(elem, streamContext)
           }
           else {
             var i = 0
             val len = splitResult.length
             while (i < len) {
-              downstream.accept(splitResult(i))
+              downstream.accept(splitResult(i), streamContext)
               i += 1
             }
           }
@@ -112,15 +113,17 @@ object IntermediateOps {
 
         private[this] var set: util.Set[Any] = _
 
-        override protected def doBegin(): Unit = set = new util.HashSet[Any]
+        override protected def doBegin(streamContext: StreamContext): Unit =
+          set = new util.HashSet[Any]
 
-        override def accept(elem: Any): Unit = {
-          if (set.add(StreamUtils.getParameterValue(elem, distinctOp))) {
-            downstream.accept(elem)
+        override def accept(elem: Any, streamContext: StreamContext): Unit = {
+          if (set.add(StreamUtils.getParameterValue(streamContext, elem, distinctOp))) {
+            downstream.accept(elem, streamContext)
           }
         }
 
-        override protected def doEnd(): Unit = set = null
+        override protected def doEnd(streamContext: StreamContext): Unit =
+          set = null
       }
     }
   }
@@ -138,32 +141,32 @@ object IntermediateOps {
 
         private[this] var arrayList: util.List[Comparable[Any]] = _
 
-        override def begin(): Unit = {
+        override def begin(streamContext: StreamContext): Unit =
           arrayList = new util.ArrayList[Comparable[Any]]
+
+        override def accept(elem: Any, streamContext: StreamContext): Unit = {
+          arrayList.add(StreamUtils.getParameterValue(streamContext, elem, sortOp)
+            .asInstanceOf[Comparable[Any]])
         }
 
-        override def accept(elem: Any): Unit = {
-          arrayList.add(StreamUtils.getParameterValue(elem, sortOp).asInstanceOf[Comparable[Any]])
-        }
-
-        override def end(): Unit = {
-          downstream.begin()
+        override def end(streamContext: StreamContext): Unit = {
+          downstream.begin(streamContext)
           if (arrayList.size > 0) {
-            arrayList.sort(getComparator)
+            arrayList.sort(getComparator(streamContext))
             val sortedArrayList = arrayList.iterator
             while (sortedArrayList.hasNext && !cancelledRequest) {
-              downstream.accept(sortedArrayList.next())
+              downstream.accept(sortedArrayList.next(), streamContext)
             }
           }
-          downstream.end()
+          downstream.end(streamContext)
           arrayList = null
         }
 
-        private[this] def getComparator: Comparator[Comparable[Any]] = {
+        private[this] def getComparator(streamContext: StreamContext): Comparator[Comparable[Any]] = {
           // 顺序，ASC表示顺序，DESC表示倒序，默认是ASC
-          val order = StreamUtils.getParameterValueAsString(null, sortOp, 1)
+          val order = StreamUtils.getParameterValueAsString(streamContext, null, sortOp, 1)
           // null值的顺序，是否是在最后面，默认是最后面，true表示最后面，false表示最前面
-          val nullsOrder = StreamUtils.getParameterValue(null, sortOp, 2)
+          val nullsOrder = StreamUtils.getParameterValue(streamContext, null, sortOp, 2)
           EitherThen(StringUtils.isEmpty(order) || "ASC".equalsIgnoreCase(order), Comparator.naturalOrder[Comparable[Any]], Comparator.reverseOrder[Comparable[Any]])
             .mergeThen(prevValue => Either.cond(Objects.isNull(nullsOrder) || nullsOrder.asInstanceOf[Boolean], Comparator.nullsLast(prevValue), Comparator.nullsFirst(prevValue)))
             .get
@@ -185,18 +188,18 @@ object IntermediateOps {
 
         private[this] var skipN: Int = _
 
-        override protected def doBegin(): Unit = {
+        override protected def doBegin(streamContext: StreamContext): Unit = {
           // 要求参数必须是数字字面量
           skipN = Objects.requireNonNull(
-              StreamUtils.getParameterValue(null, skipOp),
+              StreamUtils.getParameterValue(streamContext, null, skipOp),
               "The first parameter of skip op cannot be null"
           ).asInstanceOf[Int]
           StreamUtils.assert(skipN >= 0, "The first parameter of skip op cannot be less than 0")
         }
 
-        override def accept(elem: Any): Unit = {
+        override def accept(elem: Any, streamContext: StreamContext): Unit = {
           if (skipN < 0) {
-            downstream.accept(elem)
+            downstream.accept(elem, streamContext)
           }
           else {
             skipN -= 1
@@ -215,10 +218,10 @@ object IntermediateOps {
 
         private[this] var takeElement: Boolean = _
 
-        override def accept(elem: Any): Unit = {
-          if (takeElement || StreamUtils.getParameterValueAsBooleanNonNull(elem, dropWhileOp)) {
+        override def accept(elem: Any, streamContext: StreamContext): Unit = {
+          if (takeElement || StreamUtils.getParameterValueAsBooleanNonNull(streamContext, elem, dropWhileOp)) {
             takeElement = true
-            downstream.accept(elem)
+            downstream.accept(elem, streamContext)
           }
         }
       }
@@ -234,23 +237,22 @@ object IntermediateOps {
 
         private[this] var takeElement: Boolean = true
 
-        override def accept(elem: Any): Unit = {
+        override def accept(elem: Any, streamContext: StreamContext): Unit = {
 //           if (takeElement
 //               && (takeElement = StreamUtils.getParameterValueAsBooleanNonNull(elem, takeWhileOp))) {
 //             downstream.accept(elem)
 //           }
           // scala不支持上面这种写法
-          if (takeElement && StreamUtils.getParameterValueAsBooleanNonNull(elem, takeWhileOp)) {
-            downstream.accept(elem)
+          if (takeElement && StreamUtils.getParameterValueAsBooleanNonNull(streamContext, elem, takeWhileOp)) {
+            downstream.accept(elem, streamContext)
           }
           else {
             takeElement = false
           }
         }
 
-        override def cancelledRequest: Boolean = {
+        override def cancelledRequest: Boolean =
           !takeElement || super.cancelledRequest
-        }
       }
     }
   }

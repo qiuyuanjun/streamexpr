@@ -70,11 +70,13 @@ abstract class AbstractStream(private val prevStream: AbstractStream)
    */
   protected def opWrapSink(downstream: Sink): Sink
 
-  override def runStreamPipeline(streamPipeline: Sink, toBeProcessedDatasets: Iterator[_]): Unit = {
-    streamPipeline.begin()
+  override def runStreamPipeline(streamContext: StreamContext,
+                                 streamPipeline: Sink,
+                                 toBeProcessedDatasets: Iterator[_]): Unit = {
+    streamPipeline.begin(streamContext)
     while (toBeProcessedDatasets.hasNext && !streamPipeline.cancelledRequest) {
-      streamPipeline.accept(toBeProcessedDatasets.next())
+      streamPipeline.accept(toBeProcessedDatasets.next(), streamContext)
     }
-    streamPipeline.end()
+    streamPipeline.end(streamContext)
   }
 }

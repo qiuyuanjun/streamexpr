@@ -1,6 +1,5 @@
 package com.qiuyj.streamexpr.parser
 
-import com.qiuyj.streamexpr.StreamExpression
 import com.qiuyj.streamexpr.api._
 import com.qiuyj.streamexpr.api.ast.OperatorASTNode.Operator
 import com.qiuyj.streamexpr.api.ast._
@@ -8,8 +7,8 @@ import com.qiuyj.streamexpr.api.utils.ArrayUtils
 import com.qiuyj.streamexpr.ast._
 import com.qiuyj.streamexpr.parser.StreamExpressionParser.ConstructNodeHelper
 import com.qiuyj.streamexpr.utils.ParseUtils
+import com.qiuyj.streamexpr.{StreamExpression, jArrayDeque, jDeque}
 
-import java.util
 import scala.collection.immutable.ArraySeq
 
 /**
@@ -437,13 +436,13 @@ object StreamExpressionParser {
     /**
      * 用于存储抽象语法树节点
      */
-    private[this] val constructNodes: util.Deque[ASTNode] = new util.ArrayDeque[ASTNode]
+    private[this] val constructNodes: jDeque[ASTNode] = new jArrayDeque[ASTNode]
 
     /**
      * 用于存储当前队列中的插入位置，一般是创建数组之前会使用该字段
      * lazy：延迟加载，第一次使用的时候才new
      */
-    private[this] lazy val startIndexes: util.Deque[Int] = new util.ArrayDeque[Int](5)
+    private[this] lazy val startIndexes: jDeque[Int] = new jArrayDeque[Int](5)
 
     // ---------------------------- stack op begin ----------------------------
     def push(astNode: ASTNode): Unit = constructNodes.push(astNode)

@@ -15,7 +15,7 @@ import scala.collection.mutable.ArrayBuffer
  * @author qiuyj
  * @since 2023-06-29
  */
-class StreamExpression extends Expression {
+class StreamExpression extends Expression[StreamContext] {
 
   /**
    * 中间操作，0或者n个
@@ -29,8 +29,10 @@ class StreamExpression extends Expression {
   @NonNull
   private[this] var terminateOp: StreamOp = _
 
-  override def evaluate: Any = {
-    var stream = StreamUtils.makeStream(Seq.empty)
+  override def evaluate(): Any = evaluate(new StreamContext)
+
+  override def evaluate(context: StreamContext): Any = {
+    var stream = StreamUtils.makeStream(context.getSource, context)
     if (Objects.nonNull(intermediateOps)) {
       stream = stream.addIntermediateOps(intermediateOps)
     }
@@ -106,59 +108,71 @@ object StreamExpression {
 
   class Parameter {
 
-    private[this] var value: Any = _
+    private[this] var kindValue: Any = _
 
     private[this] var kind: Kind = _
 
-    private[streamexpr] def internalInitParameter(value: Any, kind: Kind): Unit = {
-      this.value = value
+    private[streamexpr] def internalInitParameter(kindValue: Any, kind: Kind): Unit = {
+      this.kindValue = kindValue
       this.kind = kind
     }
 
-    def getValue(valueContext: Any): Any = {
-      if (kind == IDENTIFIER && value.toString == "_")
+    def getValue(streamContext: StreamContext, valueContext: Any): Any = {
+      if ((kind eq IDENTIFIER) && (kindValue.toString eq "_"))
         valueContext
       else
-        kind.getValue(value, valueContext)
+        kind.getValue(kindValue, valueContext, streamContext)
     }
   }
 
   sealed trait Kind {
 
-    def getValue(value: Any, valueContext: Any): Any
+    def getValue(kindValue: Any,
+                 valueContext: Any,
+                 streamContext: StreamContext): Any
   }
 
   case object IDENTIFIER extends Kind {
 
-    override def getValue(value: Any, valueContext: Any): Any = {
+    override def getValue(value: Any,
+                          valueContext: Any,
+                          streamContext: StreamContext): Any = {
 
     }
   }
 
   case object SPEL extends Kind {
 
-    override def getValue(value: Any, valueContext: Any): Any = {
+    override def getValue(value: Any,
+                          valueContext: Any,
+                          streamContext: StreamContext): Any = {
       value.asInstanceOf[SpelExpression].getValue(valueContext)
     }
   }
 
   case object STRING_LITERAL extends Kind {
 
-    override def getValue(value: Any, valueContext: Any): Any =
+    override def getValue(value: Any,
+                          valueContext: Any,
+                          streamContext: StreamContext): Any =
       value.asInstanceOf[String]
   }
 
   case object AST extends Kind {
 
-    override def getValue(value: Any, valueContext: Any): Any = {
+    override def getValue(value: Any,
+                          valueContext: Any,
+                          streamContext: StreamContext): Any = {
       value.asInstanceOf[ASTNode].evaluate
     }
   }
 
   case object CONTEXT_ATTRIBUTE extends Kind {
 
-    override def getValue(value: Any, valueContext: Any): Any = {
-
+    override def getValue(value: Any,
+                          valueContext: Any,
+                          streamContext: StreamContext): Any = {
+      streamContext.getValue(value.toString)
     }
   }
 }

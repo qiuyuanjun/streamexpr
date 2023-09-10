@@ -1,6 +1,7 @@
 package com.qiuyj.streamexpr.ast
 
-import java.util
+import com.qiuyj.streamexpr.{jArrayDeque, jDeque}
+
 import scala.jdk.javaapi.CollectionConverters
 
 /**
@@ -25,7 +26,7 @@ object StreamExpressionASTNode {
 
   class Builder {
 
-    private[this] val streamOps: util.Deque[StreamOpASTNode] = new util.ArrayDeque[StreamOpASTNode](6)
+    private[this] val streamOps: jDeque[StreamOpASTNode] = new jArrayDeque[StreamOpASTNode](6)
 
     def addStreamOp(streamOp: StreamOpASTNode): this.type = {
       streamOps add streamOp

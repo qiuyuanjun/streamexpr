@@ -1,7 +1,10 @@
 package com.qiuyj.streamexpr.stream
 
+import com.qiuyj.streamexpr.StreamContext
+
 /**
  * 定义管道相关的操作
+ *
  * @author qiuyj
  * @since 2023-09-02
  */
@@ -16,8 +19,11 @@ trait PipelineHelper {
 
   /**
    * 运行给定的管道，并计算出最终的结果
-   * @param streamPipeline 需要运行的管道
+   * @param streamContext         stream流上下文
+   * @param streamPipeline        需要运行的管道
    * @param toBeProcessedDatasets 需要被处理的数据迭代器
    */
-  def runStreamPipeline(streamPipeline: Sink, toBeProcessedDatasets: Iterator[_]): Unit
+  def runStreamPipeline(streamContext: StreamContext,
+                        streamPipeline: Sink,
+                        toBeProcessedDatasets: Iterator[_]): Unit
 }

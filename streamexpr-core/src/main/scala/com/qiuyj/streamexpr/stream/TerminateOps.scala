@@ -1,11 +1,10 @@
 package com.qiuyj.streamexpr.stream
 
-import com.qiuyj.streamexpr.StreamContext
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
+import com.qiuyj.streamexpr._
 import com.qiuyj.streamexpr.api.utils.StringUtils
 
 import java.lang.reflect.Constructor
-import java.util
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 import java.util.{Objects, StringJoiner}
 import scala.util.Try
@@ -46,7 +45,7 @@ object TerminateOps {
       // 1. 构建管道
       val streamPipeline = pipelineHelper.buildStreamPipeline(this)
       // 2. 将要处理的集合的所有数据依次流入管道处理
-      pipelineHelper.runStreamPipeline(streamPipeline, toBeProcessedDatasets)
+      pipelineHelper.runStreamPipeline(getStreamContext, streamPipeline, toBeProcessedDatasets)
       // 3. 获取管道处理的最终结果
       get
     }
@@ -77,18 +76,18 @@ object TerminateOps {
 
     private[this] var builder: StringJoiner = _
 
-    override def begin(): Unit = {
+    override def begin(streamContext: StreamContext): Unit = {
       builder = new StringJoiner(
-        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 1)),
-        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 2)),
-        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(null, concatOp, 3))
+        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(streamContext, null, concatOp, 1)),
+        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(streamContext, null, concatOp, 2)),
+        StringUtils.defaultIfEmpty(StreamUtils.getParameterValueAsString(streamContext, null, concatOp, 3))
       )
     }
 
     override def get: Any = builder.toString
 
-    override def accept(elem: Any): Unit =
-      builder.add(StreamUtils.getParameterValueAsString(elem, concatOp))
+    override def accept(elem: Any, streamContext: StreamContext): Unit =
+      builder.add(StreamUtils.getParameterValueAsString(streamContext, elem, concatOp))
 
   }
 
@@ -96,16 +95,16 @@ object TerminateOps {
                         private[this] val toArrayOp: StreamOp)
       extends CancellableTerminateOpSink(streamContext) {
 
-    private[this] var arrayList: util.List[Any] = _
+    private[this] var arrayList: jList[Any] = _
 
-    override def begin(): Unit = {
-      val len = StreamUtils.getParameterValueAsString(null, toArrayOp, 1)
+    override def begin(streamContext: StreamContext): Unit = {
+      val len = StreamUtils.getParameterValueAsString(streamContext, null, toArrayOp, 1)
       arrayList = if (StringUtils.isEmpty(len)) {
-        new util.ArrayList[Any]
+        new jArrayList[Any]
       }
       else {
         Try(Integer.parseInt(len)).fold(
-          _ => new util.ArrayList[Any],
+          _ => new jArrayList[Any],
           new FixedSizeArrayList(_)
         )
       }
@@ -113,8 +112,8 @@ object TerminateOps {
 
     override def get: Any = arrayList.toArray
 
-    override def accept(elem: Any): Unit = {
-      arrayList.add(StreamUtils.getParameterValue(elem, toArrayOp))
+    override def accept(elem: Any, streamContext: StreamContext): Unit = {
+      arrayList.add(StreamUtils.getParameterValue(streamContext, elem, toArrayOp))
       arrayList match {
         case array: FixedSizeArrayList if array.isFull => cancel()
         case _ =>
@@ -123,7 +122,7 @@ object TerminateOps {
   }
 
   private class FixedSizeArrayList(private[this] val arraySize: Int)
-      extends util.AbstractList[Any] {
+      extends jAbstractList[Any] {
 
     private[this] val array = new Array[Any](arraySize)
 
@@ -163,13 +162,14 @@ object TerminateOps {
                       private[this] val toMapOp: StreamOp)
       extends TerminateOpSink(streamContext) {
 
-    private[this] var map: util.Map[Any, Any] = _
+    private[this] var map: jMap[Any, Any] = _
 
-    override def begin(): Unit = map = new util.HashMap[Any, Any]
+    override def begin(streamContext: StreamContext): Unit =
+      map = new jHashMap[Any, Any]
 
-    override def accept(elem: Any): Unit = {
-      val key = StreamUtils.getParameterValue(elem, toMapOp)
-      val value = StreamUtils.getParameterValue(elem, toMapOp, 1)
+    override def accept(elem: Any, streamContext: StreamContext): Unit = {
+      val key = StreamUtils.getParameterValue(streamContext, elem, toMapOp)
+      val value = StreamUtils.getParameterValue(streamContext, elem, toMapOp, 1)
       map.put(key, value)
     }
 
@@ -187,15 +187,15 @@ object TerminateOps {
      */
     private[this] var nonNull: Boolean = _
 
-    override def begin(): Unit = {
-      val optionalNonNull = StreamUtils.getParameterValue(null, findFirstOp, 1)
+    override def begin(streamContext: StreamContext): Unit = {
+      val optionalNonNull = StreamUtils.getParameterValue(streamContext, null, findFirstOp, 1)
       nonNull = Objects.isNull(optionalNonNull) || optionalNonNull.asInstanceOf[Boolean]
     }
 
     override def get: Any = firstValue
 
-    override def accept(elem: Any): Unit = {
-      firstValue = StreamUtils.getParameterValue(elem, findFirstOp)
+    override def accept(elem: Any, streamContext: StreamContext): Unit = {
+      firstValue = StreamUtils.getParameterValue(streamContext, elem, findFirstOp)
       if (!nonNull || Objects.nonNull(firstValue)) {
         cancel()
       }

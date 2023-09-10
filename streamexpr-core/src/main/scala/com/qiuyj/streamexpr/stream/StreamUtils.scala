@@ -1,12 +1,11 @@
 package com.qiuyj.streamexpr.stream
 
-import com.qiuyj.streamexpr.StreamContext
 import com.qiuyj.streamexpr.StreamExpression.StreamOp
 import com.qiuyj.streamexpr.api.utils.StringUtils
+import com.qiuyj.streamexpr.{StreamContext, jList}
 import org.springframework.lang.{NonNull, Nullable}
 
 import java.lang.reflect.Constructor
-import java.util
 import java.util.Objects
 import java.util.concurrent.ConcurrentMap
 import scala.jdk.javaapi.CollectionConverters
@@ -25,8 +24,10 @@ object StreamUtils {
    * @param streamOp     操作StreamOp对象，里面可以获取所有的参数列表
    * @return 下标为0的参数对应的值
    */
-  def getParameterValue(valueContext: Any, streamOp: StreamOp): Any =
-    getParameterValue(valueContext, streamOp, 0)
+  def getParameterValue(streamContext: StreamContext,
+                        valueContext: Any,
+                        streamOp: StreamOp): Any =
+    getParameterValue(streamContext, valueContext, streamOp, 0)
 
   /**
    * 获取给定操作中给定下标的参数对应的值
@@ -35,16 +36,24 @@ object StreamUtils {
    * @param parameterIndex 要获取的参数的下标
    * @return 对应下标参数对应的值
    */
-  def getParameterValue(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Any = {
-    safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
+  def getParameterValue(streamContext: StreamContext,
+                        valueContext: Any,
+                        streamOp: StreamOp,
+                        parameterIndex: Int): Any = {
+    safeGetParameterValueAt(streamContext, valueContext, streamOp, parameterIndex)
       .orNull
   }
 
-  def getParameterValueAsString(valueContext: Any, streamOp: StreamOp): String =
-    getParameterValueAsString(valueContext, streamOp, 0)
+  def getParameterValueAsString(streamContext: StreamContext,
+                                valueContext: Any,
+                                streamOp: StreamOp): String =
+    getParameterValueAsString(streamContext, valueContext, streamOp, 0)
 
-  def getParameterValueAsString(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): String = {
-    safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
+  def getParameterValueAsString(streamContext: StreamContext,
+                                valueContext: Any,
+                                streamOp: StreamOp,
+                                parameterIndex: Int): String = {
+    safeGetParameterValueAt(streamContext, valueContext, streamOp, parameterIndex)
       .map(_.toString)
       .orNull
   }
@@ -56,8 +65,10 @@ object StreamUtils {
    * @return 对应参数的值（boolean类型）
    */
   @NonNull
-  def getParameterValueAsBooleanNonNull(valueContext: Any, streamOp: StreamOp): Boolean = {
-    getParameterValueAsBooleanNonNull(valueContext, streamOp, 0)
+  def getParameterValueAsBooleanNonNull(streamContext: StreamContext,
+                                        valueContext: Any,
+                                        streamOp: StreamOp): Boolean = {
+    getParameterValueAsBooleanNonNull(streamContext, valueContext, streamOp, 0)
   }
 
   /**
@@ -68,8 +79,11 @@ object StreamUtils {
    * @return 对应参数的值（boolean类型）
    */
   @NonNull
-  def getParameterValueAsBooleanNonNull(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Boolean = {
-    safeGetParameterValueAt(valueContext, streamOp, parameterIndex)
+  def getParameterValueAsBooleanNonNull(streamContext: StreamContext,
+                                        valueContext: Any,
+                                        streamOp: StreamOp,
+                                        parameterIndex: Int): Boolean = {
+    safeGetParameterValueAt(streamContext, valueContext, streamOp, parameterIndex)
       .map {
         case booleanValue: Boolean => booleanValue
         case _ => throw new IllegalStateException("Boolean result expression expect!")
@@ -77,19 +91,28 @@ object StreamUtils {
       .getOrElse(throw new IllegalStateException("Boolean result expression expect!"))
   }
 
-  private[this] def safeGetParameterValueAt(valueContext: Any, streamOp: StreamOp, parameterIndex: Int): Option[Any] = {
+  private[this] def safeGetParameterValueAt(streamContext: StreamContext,
+                                            valueContext: Any,
+                                            streamOp: StreamOp,
+                                            parameterIndex: Int): Option[Any] = {
     val parameters = streamOp.getParameters
     if (parameterIndex < 0 || parameterIndex > parameters.size - 1)
       None
     else
-      Some(parameters(parameterIndex)).map(_.getValue(valueContext))
+      Some(parameters(parameterIndex)).map(_.getValue(streamContext, valueContext))
   }
 
   def makeStream(@Nullable source: collection.Seq[_]): Stream =
-    new Head(if (Objects.isNull(source)) Seq.empty else source, new StreamContext)
+    makeStream(source, new StreamContext)
 
-  def makeStream(@Nullable source: util.List[_]): Stream =
+  def makeStream(@Nullable source: collection.Seq[_], @NonNull streamContext: StreamContext): Stream =
+    new Head(if (Objects.isNull(source)) Seq.empty else source, streamContext)
+
+  def makeStream(@Nullable source: jList[_]): Stream =
     makeStream(CollectionConverters.asScala(source))
+
+  def makeStream(@Nullable source: jList[_], @NonNull streamContext: StreamContext): Stream =
+    makeStream(CollectionConverters.asScala(source), streamContext)
 
   /**
    * 创建stream操作实例

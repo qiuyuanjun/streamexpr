@@ -5,7 +5,7 @@ package com.qiuyj.streamexpr.api;
  * @author qiuyj
  * @since 2023-06-29
  */
-public interface Parser<T extends Expression> {
+public interface Parser<T extends Expression<? extends EvaluationContext>> {
 
     /**
      * 根据词法解析器，构建对应的抽象语法树，然后封装成对应的表达式对象
