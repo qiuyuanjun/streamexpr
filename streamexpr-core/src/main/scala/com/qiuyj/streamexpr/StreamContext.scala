@@ -3,7 +3,6 @@ package com.qiuyj.streamexpr
 import com.qiuyj.streamexpr.api.{EvaluationContext, EvaluationException}
 
 import java.util.{Collections, Objects}
-import scala.collection.mutable
 
 /**
  * stream上下文
