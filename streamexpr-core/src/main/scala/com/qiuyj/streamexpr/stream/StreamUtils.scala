@@ -148,7 +148,7 @@ object StreamUtils {
                                           opClass: Class[_ <: A],
                                           @NonNull parameterTypes: Array[Class[_]]): Unit = {
     Objects.requireNonNull(opClass, "stream op class is null")
-    assert(StringUtils.isNotEmpty(opName), "stream op name is empty")
+    assertTrue(StringUtils.isNotEmpty(opName), "stream op name is empty")
     val constructor = Try(opClass.getDeclaredConstructor(parameterTypes: _*)).fold(
       e => throw new IllegalStateException("Unable to register stream op because get the stream op's constructor exception", e),
       identity
@@ -186,7 +186,7 @@ object StreamUtils {
    * @param condition    断言条件
    * @param errorMessage 如果断言条件是false，那么抛出异常，该字段用于获取异常信息
    */
-  private[stream] def assert(condition: Boolean, errorMessage: => String): Unit = {
+  private[stream] def assertTrue(condition: Boolean, errorMessage: => String): Unit = {
     if (!condition) {
       throw new IllegalStateException(errorMessage)
     }

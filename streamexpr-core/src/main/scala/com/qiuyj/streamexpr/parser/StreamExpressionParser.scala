@@ -15,7 +15,8 @@ import scala.collection.immutable.ArraySeq
  * @author qiuyj
  * @since 2023-06-29
  */
-class StreamExpressionParser(private[this] val lexer: Lexer) extends Parser[StreamExpression] {
+class StreamExpressionParser(private[this] val lexer: Lexer)
+    extends Parser[StreamExpression] {
 
   /**
    * 用于存储抽象语法树中间构造节点

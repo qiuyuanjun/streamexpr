@@ -23,6 +23,9 @@ class StreamContext(private[this] val source: jList[_],
 
   @throws[EvaluationException]
   override def getValue(key: String): Any = {
-    null
+    if (!contextValueHolder.containsKey(key)) {
+      throw new EvaluationException(s"Can not find property '$key' in context value holder")
+    }
+    contextValueHolder.get(key)
   }
 }

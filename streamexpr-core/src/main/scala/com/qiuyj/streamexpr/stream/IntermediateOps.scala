@@ -194,7 +194,7 @@ object IntermediateOps {
               StreamUtils.getParameterValue(streamContext, null, skipOp),
               "The first parameter of skip op cannot be null"
           ).asInstanceOf[Int]
-          StreamUtils.assert(skipN >= 0, "The first parameter of skip op cannot be less than 0")
+          StreamUtils.assertTrue(skipN >= 0, "The first parameter of skip op cannot be less than 0")
         }
 
         override def accept(elem: Any, streamContext: StreamContext): Unit = {

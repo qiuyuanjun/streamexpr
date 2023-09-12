@@ -132,47 +132,47 @@ object StreamExpression {
                  streamContext: StreamContext): Any
   }
 
-  case object IDENTIFIER extends Kind {
+  object IDENTIFIER extends Kind {
 
-    override def getValue(value: Any,
+    override def getValue(kindValue: Any,
                           valueContext: Any,
                           streamContext: StreamContext): Any = {
 
     }
   }
 
-  case object SPEL extends Kind {
+  object SPEL extends Kind {
 
-    override def getValue(value: Any,
+    override def getValue(kindValue: Any,
                           valueContext: Any,
                           streamContext: StreamContext): Any = {
-      value.asInstanceOf[SpelExpression].getValue(valueContext)
+      kindValue.asInstanceOf[SpelExpression].getValue(valueContext)
     }
   }
 
-  case object STRING_LITERAL extends Kind {
+  object STRING_LITERAL extends Kind {
 
-    override def getValue(value: Any,
+    override def getValue(kindValue: Any,
                           valueContext: Any,
                           streamContext: StreamContext): Any =
-      value.asInstanceOf[String]
+      kindValue.asInstanceOf[String]
   }
 
-  case object AST extends Kind {
+  object AST extends Kind {
 
-    override def getValue(value: Any,
+    override def getValue(kindValue: Any,
                           valueContext: Any,
                           streamContext: StreamContext): Any = {
-      value.asInstanceOf[ASTNode].evaluate
+      kindValue.asInstanceOf[ASTNode].evaluate
     }
   }
 
-  case object CONTEXT_ATTRIBUTE extends Kind {
+  object CONTEXT_ATTRIBUTE extends Kind {
 
-    override def getValue(value: Any,
+    override def getValue(kindValue: Any,
                           valueContext: Any,
                           streamContext: StreamContext): Any = {
-      streamContext.getValue(value.toString)
+      streamContext.getValue(kindValue.toString)
     }
   }
 }
